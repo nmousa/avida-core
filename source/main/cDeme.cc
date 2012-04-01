@@ -1305,11 +1305,6 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
       m_task_count[i]++;
     }
   }
-  for (int i = 0; i < num_reactions; i++) {
-    if (result.ReactionTriggered(i) == true) {
-      m_reaction_count[i]++;
-    }
-  }
 
   // Update stats task totals
   for (int i = 0; i < num_tasks; i++) {

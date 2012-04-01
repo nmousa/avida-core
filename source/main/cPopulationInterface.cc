@@ -510,6 +510,7 @@ bool cPopulationInterface::SendMessage(cOrgMessage& msg) {
   cPopulationCell& cell = m_world->GetPopulation().GetCell(m_cell_id);
   assert(cell.IsOccupied()); // This organism; sanity.
 
+  // If neural networking ..
   if (m_world->GetConfig().USE_AVATARS.Get() == 2 && m_world->GetConfig().NEURAL_NETWORKING.Get()) {
     //assert(m_avatars);
     bool message_sent = false;
@@ -519,6 +520,7 @@ bool cPopulationInterface::SendMessage(cOrgMessage& msg) {
       }
     }
     return message_sent;
+  // Regular messaging (not neural networking)..
   } else {
     cPopulationCell* rcell = cell.ConnectionList().GetFirst();
     assert(rcell != 0); // Cells should never be null.	
