@@ -3420,7 +3420,7 @@ bool cHardwareExperimental::Inst_RotateNeuronAVLeft(cAvidaContext& ctx)
 bool cHardwareExperimental::Inst_RotateNeuronAVRight(cAvidaContext& ctx)
 {
   const int avatar_reg = FindModifiedRegister(rBX);
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_num].value;
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
 
   avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 

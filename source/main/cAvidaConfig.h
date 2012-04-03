@@ -590,7 +590,7 @@ public:
 
   CONFIG_ADD_VAR(NEURAL_NETWORKING, bool, 0, "Turns neural networking system on/off. \nRequires USE_AVATARS be turned on.");
   CONFIG_ADD_VAR(SELF_COMMUNICATION, bool, 0, "Allows organisms to create self communication loops. \nAn organism's input avatars can receive messages from it's own output avatars.");
-  CONFIG_ADD_VAR(NEURON_MAX_DIST, int, 0, "Maximum distance input avatars can move from the output avatar (manhattan distance).");
+  CONFIG_ADD_VAR(NEURON_MAX_DIST, int, 0, "Maximum distance input avatars can move from the output avatar (manhattan distance)(0 = no limit)");
 
   // -------- Buying and Selling config options --------
   CONFIG_ADD_GROUP(BUY_SELL_GROUP, "Buying and Selling Parameters");
