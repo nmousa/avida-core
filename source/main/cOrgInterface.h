@@ -196,6 +196,9 @@ public:
   
   virtual void AttackFacedOrg(cAvidaContext& ctx, int loser) = 0;
   
+  virtual int GetNumAV() = 0;
+  virtual bool AVIsInput(int av_num) = 0;
+  virtual bool AVIsOutput(int av_num) = 0;
   virtual bool HasOutputAV(int av_num = 0) = 0;
   virtual bool FacedHasOutputAV(int av_num = 0) = 0;
   virtual bool FacedHasAV(int av_num = 0) = 0;

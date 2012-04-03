@@ -1651,6 +1651,59 @@ void cStats::PrintInstructionData(const cString& filename, const cString& inst_s
   df.Endl();
 }
 
+void cStats::PrintCyclingInstructionData(const cString& filename, const cString& inst_set, tArray<int> deme_list)
+{
+  const int num_demes = m_world->GetPopulation().GetNumDemes();
+  const int update = GetUpdate();
+
+  cDataFile& df = m_world->GetDataFile(filename);
+  df.WriteComment("Number of instruction executions for each organism since last output or organism reset.");
+  df.WriteTimeStamp();
+
+  if (deme_list.GetSize()) {
+    for (int index = 0; index < deme_list.GetSize(); index++) {
+      int deme_id = deme_list[index];
+      cDeme& deme = m_world->GetPopulation().GetDeme(deme_id);
+      for (int deme_cell_id = 0; deme_cell_id < deme.GetSize(); deme_cell_id++) {
+        cOrganism* org = deme.GetOrganism(deme_cell_id);
+        if (org != 0) {
+          df.Write(update, "Update [update]");
+          df.Write(deme_id, "Deme id [demeid]");
+          df.Write(deme_cell_id, "Organism deme cell id [cellid]");
+
+          tArray<int> inst_counts = org->GetPhenotype().GetCyclingInstCount();
+          for (int i = 0; i < inst_counts.GetSize(); i++) {
+            df.Write(inst_counts[i], m_is_inst_names_map[inst_set][i]);
+          }
+          org->GetPhenotype().ResetCyclingInstCount();
+
+          df.Endl();
+        }
+      }
+    }
+  } else {
+    for (int deme_id = 0; deme_id < num_demes; deme_id++) {
+      cDeme& deme = m_world->GetPopulation().GetDeme(deme_id);
+      for (int deme_cell_id = 0; deme_cell_id < deme.GetSize(); deme_cell_id++) {
+        cOrganism* org = deme.GetOrganism(deme_cell_id);
+        if (org != 0) {
+          df.Write(update, "Update [update]");
+          df.Write(deme_id, "Deme id [demeid]");
+          df.Write(deme_cell_id, "Organism deme cell id [cellid]");
+
+          tArray<int> inst_counts = org->GetPhenotype().GetCyclingInstCount();
+          for (int i = 0; i < inst_counts.GetSize(); i++) {
+            df.Write(inst_counts[i], m_is_inst_names_map[inst_set][i]);
+          }
+          org->GetPhenotype().ResetCyclingInstCount();
+
+          df.Endl();
+        }
+      }
+    }
+  }
+}
+
 void cStats::PrintMarketData(const cString& filename)
 {
 	cDataFile& df = m_world->GetDataFile(filename);
@@ -2568,6 +2621,8 @@ void cStats::PrintDemesReactionsData(const cString& filename)
 //@JJB**
 void cStats::PrintDemesFitnessData(const cString& filename)
 {
+  if (int(m_last_deme_fitness.size()) == 0) return;
+
   cDataFile& df = m_world->GetDataFile(filename);
   df.WriteComment("Avida competition fitness for each deme");
   df.WriteTimeStamp();
@@ -2575,7 +2630,7 @@ void cStats::PrintDemesFitnessData(const cString& filename)
   df.Write(m_update, "Update");
   const int num_demes = m_world->GetPopulation().GetNumDemes();
   for (int deme_id = 0; deme_id < num_demes; deme_id++) {
-    //df.Write(m_deme_fitness[deme_id], cStringUtil::Stringf("%i.Fitness", deme_id));
+    df.Write(m_last_deme_fitness[deme_id], cStringUtil::Stringf("Deme.%i.Fitness", deme_id));
   }
   df.Endl();
 }
@@ -2670,6 +2725,7 @@ void cStats::PrintDemeMigrationSuicidePoints(const cString& filename)
 
 void cStats::CompeteDemes(const std::vector<double>& fitness)
 {
+  m_last_deme_fitness = m_deme_fitness; //@JJB**
   m_deme_fitness = fitness;
 }
 
@@ -2694,6 +2750,7 @@ void cStats::PrintDemeCompetitionData(const cString& filename)
   }
   df.Endl();
 
+  m_last_deme_fitness = m_deme_fitness; //@JJB**
   m_deme_fitness.clear();
 }
 
@@ -3684,40 +3741,42 @@ void cStats::PrintHGTData(const cString& filename) {
 
 /*! Log a message.
  */
-void cStats::LogMessage(const cOrgMessage& msg, bool dropped, bool lost) {
-	m_message_log.push_back(message_log_entry_t(GetUpdate(),
-      msg.GetSender()->GetDeme()->GetID(),
-      msg.GetSenderCellID(),
-      msg.GetReceiverCellID(),
-      msg.GetTransCellID(),
-      msg.GetData(),
-      msg.GetLabel(),
-      dropped,
-      lost));
+void cStats::LogMessage(const cOrgMessage& msg, bool dropped, bool lost)
+{
+  m_message_log.push_back(message_log_entry_t(GetUpdate(),
+    msg.GetSender()->GetDeme()->GetID(),
+    msg.GetSenderCellID(),
+    msg.GetReceiverCellID(),
+    msg.GetTransCellID(),
+    msg.GetData(),
+    msg.GetLabel(),
+    dropped,
+    lost));
 }
 
 /*! Prints logged messages.
  */
-void cStats::PrintMessageLog(const cString& filename) {
-	cDataFile& df = m_world->GetDataFile(filename);
+void cStats::PrintMessageLog(const cString& filename)
+{
+  cDataFile& df = m_world->GetDataFile(filename);
 
-	df.WriteComment("Log of all messages sent in population.");
+  df.WriteComment("Log of all messages sent in population.");
   df.WriteTimeStamp();
 
-	for(message_log_t::iterator i=m_message_log.begin(); i!=m_message_log.end(); ++i) {
-		df.Write(i->update, "Update [update]");
-		df.Write(i->deme, "Deme ID [deme]");
-		df.Write(i->src_cell, "Source [src]");
-		df.Write(i->dst_cell, "Destination [dst]");
-        df.Write(i->transmit_cell, "Transmission_cell [trs]");
-		df.Write(i->msg_data, "Message data [data]");
-		df.Write(i->msg_label, "Message label [label]");
-		df.Write(i->dropped, "Dropped [dropped]");
-		df.Write(i->lost, "Lost [lost]");
-		df.Endl();
-	}
+  for(message_log_t::iterator i=m_message_log.begin(); i!=m_message_log.end(); ++i) {
+    df.Write(i->update, "Update [update]");
+    df.Write(i->deme, "Deme ID [deme]");
+    df.Write(i->src_cell, "Source [src]");
+    df.Write(i->dst_cell, "Destination [dst]");
+    df.Write(i->transmit_cell, "Transmission_cell [trs]");
+    df.Write(i->msg_data, "Message data [data]");
+    df.Write(i->msg_label, "Message label [label]");
+    df.Write(i->dropped, "Dropped [dropped]");
+    df.Write(i->lost, "Lost [lost]");
+    df.Endl();
+  }
 
-	m_message_log.clear();
+  m_message_log.clear();
 }
 
 
@@ -3891,6 +3950,53 @@ void cStats::PrintWinningDeme(const cString& filename)
   df.Endl();
 }
 
+//@JJB**
+void cStats::PrintMaxFitnessGermlines(const cString& filename)
+{
+  if (int(m_last_deme_fitness.size()) == 0) return;
+
+  double highest_fitness = 0.0;
+  std::vector<int> highest_demes;
+  bool found_max = false;
+  for (int i = 0; i < (int)m_last_deme_fitness.size(); i++) {
+    if (m_last_deme_fitness[i] > highest_fitness) {
+      highest_fitness = m_last_deme_fitness[i];
+      highest_demes.clear();
+      highest_demes.push_back(i);
+      found_max = true;
+    } else if (m_last_deme_fitness[i] == highest_fitness) {
+      highest_demes.push_back(i);
+    }
+  }
+
+  if (!found_max) return;
+
+  cDataFile& df = m_world->GetDataFile(filename);
+  df.WriteComment("The highest fitness deme germlines.");
+  df.WriteTimeStamp();
+
+  for (int i = 0; i < (int)highest_demes.size(); i++) {
+    cDeme& deme = m_world->GetPopulation().GetDeme(highest_demes[i]);
+    
+    int genotype_id = 0;
+    for (int deme_cell_id = 0; deme_cell_id < deme.GetSize(); deme_cell_id++) {
+      cOrganism* org = deme.GetOrganism(deme_cell_id);
+      if (org) {
+        genotype_id = org->GetBioGroup("genotype")->GetID();
+        break;
+      }
+    }
+    cString genome = deme.GetGermline().GetLatest().GetSequence().AsString();
+
+    df.Write(GetUpdate(), "Update [update]");
+    df.Write(highest_demes[i], "Deme id [demeid]");
+    df.Write(highest_fitness, "Deme fitness [fitness]");
+    df.Write(genotype_id, "Genome ID [genomeid]");
+    df.Write(genome, "Genome sequence [genome]");
+
+    df.Endl();
+  }
+}
 
 /*! Record information about an organism migrating from this population.
  */

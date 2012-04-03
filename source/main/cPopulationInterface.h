@@ -264,15 +264,17 @@ private:
     sIO_avatar() : av_cell_id(-1), av_facing(0), av_faced_cell(-1), av_input(false), av_output(false) { ; }
     sIO_avatar(int av_cell_id, int av_facing, int av_faced_cell, bool input, bool output) : av_cell_id(av_cell_id), av_facing(av_facing), av_faced_cell(av_faced_cell), av_input(input), av_output(output) { ; }
   };
-
   tSmartArray<sIO_avatar> m_avatars;
-  inline int getNumAV() { return m_avatars.GetSize(); }
 public:
+  int GetNumAV() { return m_avatars.GetSize(); }
+  bool AVIsInput(int av_num) { return m_avatars[av_num].av_input; }
+  bool AVIsOutput(int av_num) { return m_avatars[av_num].av_output; }
   bool HasOutputAV(int av_num = 0);
   bool FacedHasOutputAV(int av_num = 0);
   bool FacedHasAV(int av_num = 0);
   bool FacedHasPredAV(int av_num = 0);
   bool FacedHasPreyAV(int av_num = 0);
+  bool CellInAvatarRange(int cell_id);
   void AddAV(int av_cell_id, int av_facing, bool input, bool output);
   void AddPredPreyAV(int av_cell_id);
   void SwitchPredPrey(int av_num = 0);

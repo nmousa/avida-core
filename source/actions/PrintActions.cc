@@ -125,6 +125,7 @@ STATS_OUT_FILE(PrintDemeReplicationData,    deme_repl.dat       );
 STATS_OUT_FILE(PrintDemeGermlineSequestration, deme_germ.dat);
 STATS_OUT_FILE(PrintDemeReactionDiversityReplicationData, deme_rx_repl.dat );
 STATS_OUT_FILE(PrintWinningDeme, deme_winners.dat);
+STATS_OUT_FILE(PrintMaxFitnessGermlines,    demes_germlines_winners.dat); //@JJB**
 STATS_OUT_FILE(PrintDemeTreatableReplicationData,    deme_repl_treatable.dat       );
 STATS_OUT_FILE(PrintDemeUntreatableReplicationData,  deme_repl_untreatable.dat       );
 STATS_OUT_FILE(PrintDemeTreatableCount,     deme_treatable.dat       );
@@ -457,6 +458,36 @@ public:
   void Process(cAvidaContext& ctx)
   {
     m_world->GetStats().PrintFemaleInstructionData(m_filename, m_inst_set);
+  }
+};
+
+//@JJB**
+// Only designed to handle a single instruction set
+class cActionPrintCyclingInstructionData : public cAction
+{
+private:
+  cString m_filename;
+  tArray<int> m_deme_list;
+  cString m_inst_set;
+
+public:
+  cActionPrintCyclingInstructionData(cWorld* world, const cString& args, Feedback&)
+  : cAction(world, args), m_deme_list(0), m_inst_set(world->GetHardwareManager().GetDefaultInstSet().GetInstSetName())
+  {
+    cString largs(args);
+    largs.Trim();
+    if (largs.GetSize()) {
+      cString deme_list_str = largs.PopWord();
+      m_deme_list = cStringUtil::ReturnArray(deme_list_str);
+    }
+    m_filename = "cycling_instructions.dat";
+  }
+
+  static const cString GetDescription() { return "Arguments: [deme_id_list] (leave blank for all demes)"; }
+
+  void Process(cAvidaContext& ctx)
+  {
+    m_world->GetStats().PrintCyclingInstructionData(m_filename, m_inst_set, m_deme_list);
   }
 };
 
@@ -2806,6 +2837,81 @@ public:
   }
 };
 
+//@JJB**
+class cActionClearMessageLog : public cAction
+{
+public:
+  cActionClearMessageLog(cWorld* world, const cString& args, Feedback&)
+  : cAction(world, args)
+  {
+  }
+
+  static const cString GetDescription() { return "No arguments. Clears message log to reduce later output congestion"; }
+
+  void Process(cAvidaContext& ctx)
+  {
+    m_world->GetStats().ClearMessageLog();
+  }
+};
+
+//@JJB**
+class cActionPrintDemeMessageData : public cAction
+{
+private:
+  cString m_filename;
+  tArray<int> m_deme_list;
+public:
+  cActionPrintDemeMessageData(cWorld* world, const cString& args, Feedback&)
+  : cAction(world, args), m_deme_list(0)
+  {
+    cString largs(args);
+    largs.Trim();
+    if (largs.GetSize()) {
+      cString deme_list_str = largs.PopWord();
+      m_deme_list = cStringUtil::ReturnArray(deme_list_str);
+    }
+    m_filename = "deme_message.dat";
+  }
+
+  static const cString GetDescription() { return "Arguments: [deme_id_list] (leave blank for all demes)"; }
+
+  void Process(cAvidaContext& ctx)
+  {
+    const int num_demes = m_world->GetPopulation().GetNumDemes();
+    const int update = m_world->GetStats().GetUpdate();
+
+    cDataFile& df = m_world->GetDataFile(m_filename);
+    df.WriteComment("Messaging data for each deme.");
+    df.WriteTimeStamp();
+
+    if (m_deme_list.GetSize()) {
+      for (int index = 0; index < m_deme_list.GetSize(); index++) {
+        int deme_id = m_deme_list[index];
+        cDeme& deme = m_world->GetPopulation().GetDeme(deme_id);
+        
+        df.Write(update, "Update [update]");
+        df.Write(deme_id, "Deme id [demeid]");
+        df.Write(deme.GetMessageSuccessfullySent(), "Messages successfully sent [success]");
+        df.Write(deme.GetMessageDropped(), "Messages dropped [dropped]");
+        df.Write(deme.GetMessageSendFailed(), "Failed messages (no recipient) [failed]");
+
+        df.Endl();
+      }
+    } else {
+      for (int deme_id = 0; deme_id < num_demes; deme_id++) {
+        cDeme& deme = m_world->GetPopulation().GetDeme(deme_id);
+        
+        df.Write(update, "Update [update]");
+        df.Write(deme_id, "Deme id [demeid]");
+        df.Write(deme.GetMessageSuccessfullySent(), "Messages successfully sent [success]");
+        df.Write(deme.GetMessageDropped(), "Messages dropped [dropped]");
+        df.Write(deme.GetMessageSendFailed(), "Failed messages (no recipient) [failed]");
+
+        df.Endl();
+      }
+    }
+  }
+};
 
 
 class cActionCalcConsensus : public cAction
@@ -4363,6 +4469,94 @@ public:
   }
 };
 
+//@JJB**
+class cActionPrintNeuronAvatars : public cAction
+{
+private:
+  cString m_filename;
+  tArray<int> m_deme_list;
+public:
+  cActionPrintNeuronAvatars(cWorld* world, const cString& args, Feedback&)
+  : cAction(world, args), m_deme_list(0)
+  {
+    cString largs(args);
+    largs.Trim();
+    if (largs.GetSize()) {
+      cString deme_list_str = largs.PopWord();
+      m_deme_list = cStringUtil::ReturnArray(deme_list_str);
+    }
+    m_filename = "neuron_avatars.dat";
+  }
+
+  static const cString GetDescription() { return "Arguments: [deme_id_list] (leave blank for all demes)"; }
+
+  void Process(cAvidaContext& ctx)
+  {
+    const int num_demes = m_world->GetPopulation().GetNumDemes();
+    const int update = m_world->GetStats().GetUpdate();
+    int av_cell_id;
+    int av_input;
+    int av_output;
+
+    cDataFile& df = m_world->GetDataFile(m_filename);
+    df.WriteComment("Avatar type and location, for neural networking.");
+    df.WriteTimeStamp();
+    
+    if (m_deme_list.GetSize()) {
+      for (int index = 0; index < m_deme_list.GetSize(); index++) {
+        int deme_id = m_deme_list[index];
+        cDeme& deme = m_world->GetPopulation().GetDeme(deme_id);
+        int deme_size = deme.GetSize();
+        for (int deme_cell_id = 0; deme_cell_id < deme_size; deme_cell_id++) {
+          cOrganism* org = deme.GetOrganism(deme_cell_id);
+          if (org != 0) {
+            for (int av_id = 0; av_id < org->GetOrgInterface().GetNumAV(); av_id++) {
+              av_cell_id = org->GetOrgInterface().GetAVCellID(av_id);
+              if (org->GetOrgInterface().AVIsInput(av_id)) av_input = 1;
+              else av_input = 0;
+              if (org->GetOrgInterface().AVIsOutput(av_id)) av_output = 1;
+              else av_output = 0;
+              
+              df.Write(update, "Update [update]");
+              df.Write(deme_id, "Deme id [demeid]");
+              df.Write(deme_cell_id, "Organism deme cell id [cellid]");
+              df.Write(av_cell_id % deme_size, "Avatar deme cell id [avcell]");
+              df.Write(av_input, "Avatar is input [avinput]");
+              df.Write(av_output, "Avatar is output [avoutput]");
+              df.Endl();
+            }
+          }
+        }
+      }
+    } else {
+      for (int deme_id = 0; deme_id < num_demes; deme_id++) {
+        cDeme& deme = m_world->GetPopulation().GetDeme(deme_id);
+        int deme_size = deme.GetSize();
+        for (int deme_cell_id = 0; deme_cell_id < deme_size; deme_cell_id++) {
+          cOrganism* org = deme.GetOrganism(deme_cell_id);
+          if (org != 0) {
+            for (int av_id = 0; av_id < org->GetOrgInterface().GetNumAV(); av_id++) {
+              av_cell_id = org->GetOrgInterface().GetAVCellID(av_id);
+              if (org->GetOrgInterface().AVIsInput(av_id)) av_input = 1;
+              else av_input = 0;
+              if (org->GetOrgInterface().AVIsOutput(av_id)) av_output = 1;
+              else av_output = 0;
+              
+              df.Write(update, "Update [update]");
+              df.Write(deme_id, "Deme id [demeid]");
+              df.Write(deme_cell_id, "Organism deme cell id [cellid]");
+              df.Write(av_cell_id % deme_size, "Avatar deme cell id [avcell]");
+              df.Write(av_input, "Avatar is input [avinput]");
+              df.Write(av_output, "Avatar is output [avoutput]");
+              df.Endl();
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
 class cActionPrintDebug : public cAction
 {
 public:
@@ -4624,6 +4818,7 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintCountData>("PrintCountData");
   action_lib->Register<cActionPrintMessageData>("PrintMessageData");
   action_lib->Register<cActionPrintMessageLog>("PrintMessageLog");
+  action_lib->Register<cActionClearMessageLog>("ClearMessageLog"); //@JJB**
   action_lib->Register<cActionPrintInterruptData>("PrintInterruptData");
   action_lib->Register<cActionPrintTotalsData>("PrintTotalsData");
   action_lib->Register<cActionPrintThreadsData>("PrintThreadsData");
@@ -4661,6 +4856,7 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintSenseData>("PrintSenseData");
   action_lib->Register<cActionPrintSenseExeData>("PrintSenseExeData");
   action_lib->Register<cActionPrintInstructionData>("PrintInstructionData");
+  action_lib->Register<cActionPrintCyclingInstructionData>("PrintCyclingInstructionData"); //@JJB**
   action_lib->Register<cActionPrintInternalTasksData>("PrintInternalTasksData");
   action_lib->Register<cActionPrintInternalTasksQualData>("PrintInternalTasksQualData");
   action_lib->Register<cActionPrintSleepData>("PrintSleepData");
@@ -4712,12 +4908,14 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintDemeGermlineSequestration>("PrintDemeGermlineSequestration");
   action_lib->Register<cActionPrintDemeReactionDiversityReplicationData>("PrintDemeReactionDiversityReplicationData");
   action_lib->Register<cActionPrintWinningDeme>("PrintWinningDeme");
+  action_lib->Register<cActionPrintMaxFitnessGermlines>("PrintMaxFitnessGermlines"); //@JJB**
   action_lib->Register<cActionPrintDemeTreatableReplicationData>("PrintDemeTreatableReplicationData");
   action_lib->Register<cActionPrintDemeUntreatableReplicationData>("PrintDemeUntreatableReplicationData");
   action_lib->Register<cActionPrintDemeTreatableCount>("PrintDemeTreatableCount");
   action_lib->Register<cActionPrintDemeFitness>("PrintDemeFitnessData");
   action_lib->Register<cActionPrintDemeLifeFitness>("PrintDemeLifeFitnessData");
   action_lib->Register<cActionPrintDemeTasks>("PrintDemeTasksData");
+  action_lib->Register<cActionPrintDemeMessageData>("PrintDemeMessageData"); //@JJB**
 
   action_lib->Register<cActionPrintDemeCompetitionData>("PrintDemeCompetitionData");
   action_lib->Register<cActionPrintDemeNetworkData>("PrintDemeNetworkData");
@@ -4836,6 +5034,8 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintToleranceData>("PrintToleranceData"); 
   action_lib->Register<cActionPrintTargets>("PrintTargets");
   action_lib->Register<cActionPrintHGTData>("PrintHGTData");
+
+  action_lib->Register<cActionPrintNeuronAvatars>("PrintNeuronAvatars");//@JJB**
 
   action_lib->Register<cActionSetVerbose>("SetVerbose");
   action_lib->Register<cActionSetVerbose>("VERBOSE");

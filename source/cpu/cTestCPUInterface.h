@@ -194,6 +194,9 @@ public:
 
   void AttackFacedOrg(cAvidaContext& ctx, int loser) { ; }
 
+  int GetNumAV() { return 0; }
+  bool AVIsInput(int av_num) { return false; }
+  bool AVIsOutput(int av_num) { return false; }
   bool HasOutputAV(int av_num = 0) { return false; }
   bool FacedHasOutputAV(int av_num = 0) { return false; }
   bool FacedHasAV(int av_num = 0) { return false; }

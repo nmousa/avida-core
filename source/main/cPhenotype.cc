@@ -156,11 +156,12 @@ cPhenotype& cPhenotype::operator=(const cPhenotype& in_phen)
   cur_rbins_total          = in_phen.cur_rbins_total;
   cur_rbins_avail          = in_phen.cur_rbins_avail;
   cur_collect_spec_counts  = in_phen.cur_collect_spec_counts;
-  cur_reaction_count       = in_phen.cur_reaction_count;            
-  cur_reaction_add_reward  = in_phen.cur_reaction_add_reward;     
-  cur_inst_count           = in_phen.cur_inst_count;                 
-  cur_sense_count          = in_phen.cur_sense_count;                 
-  sensed_resources         = in_phen.sensed_resources;            
+  cur_reaction_count       = in_phen.cur_reaction_count;
+  cur_reaction_add_reward  = in_phen.cur_reaction_add_reward;
+  cur_inst_count           = in_phen.cur_inst_count;
+  m_cycling_inst_count     = in_phen.m_cycling_inst_count; //@JJB**
+  cur_sense_count          = in_phen.cur_sense_count;
+  sensed_resources         = in_phen.sensed_resources;
   cur_task_time            = in_phen.cur_task_time;
   m_tolerance_immigrants          = in_phen.m_tolerance_immigrants;
   m_tolerance_offspring_own       = in_phen.m_tolerance_offspring_own;
@@ -385,6 +386,7 @@ void cPhenotype::SetupOffspring(const cPhenotype& parent_phenotype, const Sequen
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
+  m_cycling_inst_count.SetAll(0); //@JJB**
   cur_sense_count.SetAll(0);  
   cur_task_time.SetAll(0.0);  // Added for time tracking; WRE 03-18-07
   for (int j = 0; j < sensed_resources.GetSize(); j++) {
@@ -594,6 +596,7 @@ void cPhenotype::SetupInject(const Sequence& _genome)
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
+  m_cycling_inst_count.SetAll(0); //@JJB**
   sensed_resources.SetAll(0);
   cur_sense_count.SetAll(0);
   cur_task_time.SetAll(0.0);
@@ -845,6 +848,7 @@ void cPhenotype::DivideReset(const Sequence& _genome)
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
+  m_cycling_inst_count.SetAll(0); //@JJB**
   cur_sense_count.SetAll(0);
   cur_task_time.SetAll(0.0);
   cur_child_germline_propensity = m_world->GetConfig().DEMES_DEFAULT_GERMLINE_PROPENSITY.Get();
@@ -1042,6 +1046,7 @@ void cPhenotype::TestDivideReset(const Sequence& _genome)
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
+  m_cycling_inst_count.SetAll(0);
   cur_sense_count.SetAll(0); 
   cur_task_time.SetAll(0.0);
   sensed_resources.SetAll(-1.0);
@@ -1196,6 +1201,7 @@ void cPhenotype::SetupClone(const cPhenotype& clone_phenotype)
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
+  m_cycling_inst_count.SetAll(0); //@JJB**
   cur_sense_count.SetAll(0);  
   cur_task_time.SetAll(0.0);
   for (int j = 0; j < sensed_resources.GetSize(); j++) {
@@ -1995,6 +2001,7 @@ void cPhenotype::NewTrial()
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
+  m_cycling_inst_count.SetAll(0);
   cur_sense_count.SetAll(0);
   //cur_trial_fitnesses.Resize(0); Don't throw out the trial fitnesses! @JEB
   trial_time_used = 0;

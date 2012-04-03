@@ -321,6 +321,7 @@ bool cHardwareTransSMT::SingleProcess_ExecuteInst(cAvidaContext& ctx, const cIns
 	
   // instruction execution count incremeneted
   m_organism->GetPhenotype().IncCurInstCount(actual_inst.GetOp());
+  m_organism->GetPhenotype().IncCyclingInstCount(actual_inst.GetOp()); //@JJB**
 	
   // And execute it.
   const bool exec_success = (this->*(m_functions[inst_idx]))(ctx);
@@ -328,6 +329,7 @@ bool cHardwareTransSMT::SingleProcess_ExecuteInst(cAvidaContext& ctx, const cIns
   // decremenet if the instruction was not executed successfully
   if (exec_success == false) {
     m_organism->GetPhenotype().DecCurInstCount(actual_inst.GetOp());
+    m_organism->GetPhenotype().DecCyclingInstCount(actual_inst.GetOp()); //@JJB**
   }
 	
   return exec_success;

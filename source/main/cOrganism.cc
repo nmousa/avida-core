@@ -1093,6 +1093,11 @@ void cOrganism::ReceiveMessage(cOrgMessage& msg)
     // then create new thread and load its registers
     m_hardware->InterruptThread(cHardwareBase::MSG_INTERRUPT);
   }
+
+  // If neural networking need to log successful message @JJB**
+  if (m_world->GetConfig().NET_LOG_MESSAGES.Get() && m_world->GetConfig().NEURAL_NETWORKING.Get()) {
+    m_world->GetStats().LogMessage(msg, false, false);
+  }
 }
 
 

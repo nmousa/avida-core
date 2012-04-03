@@ -911,6 +911,7 @@ public:
   void PrintDivideMutData(const cString& filename);
   void PrintMutationRateData(const cString& filename);
   void PrintInstructionData(const cString& filename, const cString& inst_set);
+  void PrintCyclingInstructionData(const cString& filename, const cString& inst_set, tArray<int> deme_list);
   void PrintMarketData(const cString& filename);
   void PrintSenseData(const cString& filename);
   void PrintSenseExeData(const cString& filename);
@@ -972,6 +973,7 @@ public:
   void LogMessage(const cOrgMessage& msg, bool dropped, bool lost);
   //! Prints logged messages.
   void PrintMessageLog(const cString& filename);
+  void ClearMessageLog() { m_message_log.clear(); }
 
 protected:
   /*! List of all active message predicates.  The idea here is that the predicates,
@@ -1059,6 +1061,7 @@ public:
 	void PrintDemeReactionDiversityReplicationData(const cString& filename);
   void PrintWinningDeme(const cString& filename);
 
+  void PrintMaxFitnessGermlines(const cString& filename); //@JJB**
   void PrintDemesTasksData(const cString& filename); //@JJB**
   void PrintDemesReactionsData(const cString& filename); //@JJB**
   void PrintDemesFitnessData(const cString& filename); //@JJB**
@@ -1109,6 +1112,7 @@ public:
 
 private:
   std::vector<double> m_deme_fitness; //!< Fitness of each deme during last deme competition.
+  std::vector<double> m_last_deme_fitness; //@JJB**
 
 	// -------- Cell data support --------
 public:
