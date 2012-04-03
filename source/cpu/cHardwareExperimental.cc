@@ -1243,10 +1243,22 @@ bool cHardwareExperimental::ForkThread()
   
   // Make room for the new thread.
   m_threads.Resize(num_threads + 1);
-  
+
+
   // Initialize the new thread to the same values as the current one.
-  assert(m_threads[m_cur_thread].active);
-  m_threads[num_threads] = m_threads[m_cur_thread];
+  //assert(m_threads[m_cur_thread].active);
+  //m_threads[num_threads] = m_threads[m_cur_thread];
+  // Hack fix (fixing the symptom not the problem) @JJB**
+  bool set_thread = false;
+  for (int i = 0; i < num_threads; i++) {
+    int n = (m_cur_thread + i) % num_threads;
+    if (m_threads[n].active) {
+      m_threads[num_threads] = m_threads[n];
+      set_thread = true;
+      break;
+    }
+  }
+  assert(set_thread);
   
   // Find the first free bit in m_thread_id_chart to determine the new
   // thread id.
@@ -2431,7 +2443,7 @@ bool cHardwareExperimental::Inst_WaitCondition_Equal(cAvidaContext& ctx)
       setInternalValue(wait_dst, m_threads[i].reg[check_reg].value, m_threads[i].reg[check_reg]);
       return true;
     }
-  }  
+  }
   // Fail to sleep if this is the last thread awake
   if (int(m_waiting_threads) == (m_threads.GetSize() - 1)) return false;
   
