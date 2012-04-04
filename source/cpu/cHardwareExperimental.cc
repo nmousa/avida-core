@@ -1236,17 +1236,24 @@ void cHardwareExperimental::ReadLabel(int max_size)
   }
 }
 
-bool cHardwareExperimental::ForkThread()
+bool cHardwareExperimental::ForkThread(bool spawn_active)
 {
   const int num_threads = m_threads.GetSize();
   if (num_threads == m_world->GetConfig().MAX_CPU_THREADS.Get()) return false;
-  
+
   // Make room for the new thread.
   m_threads.Resize(num_threads + 1);
   
   // Initialize the new thread to the same values as the current one.
-  assert(m_threads[m_cur_thread].active);
+  if (!spawn_active) {
+    assert(m_threads[m_cur_thread].active);
+  }
   m_threads[num_threads] = m_threads[m_cur_thread];
+
+  // If spawn active, make the new thread active even if the current one was asleep
+  if (spawn_active) {
+    m_threads[num_threads].active = true;
+  }
   
   // Find the first free bit in m_thread_id_chart to determine the new
   // thread id.
@@ -1506,6 +1513,7 @@ void cHardwareExperimental::checkWaitingThreads(int cur_thread, int reg_num)
         // Wake up the thread with matched condition
         m_threads[i].active = true;
         m_waiting_threads--;
+        assert(m_waiting_threads >= 0);
         
         // Set destination register to be the check value
         sInternalValue& dest = m_threads[i].reg[m_threads[i].wait_dst];
@@ -1570,7 +1578,7 @@ bool cHardwareExperimental::InterruptThread(int interruptType)
 
   if (start_pos == search_head.GetPosition()) return false;
 
-  if (ForkThread()) {
+  if (ForkThread(true)) {
     const int num_threads = m_threads.GetSize() - 1;
     m_threads[num_threads].setMessageTriggerType(interruptMsgType);
 

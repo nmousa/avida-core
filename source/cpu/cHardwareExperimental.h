@@ -345,7 +345,7 @@ private:
   
   
   // --------  Thread Manipulation  -------
-  bool ForkThread(); // Adds a new thread based off of m_cur_thread.
+  bool ForkThread(bool spawn_active = false); // Adds a new thread based off of m_cur_thread.
   bool ExitThread(); // Kill the current thread!
   
   
