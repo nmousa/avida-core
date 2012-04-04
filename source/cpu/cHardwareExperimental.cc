@@ -1243,7 +1243,8 @@ bool cHardwareExperimental::ForkThread(bool spawn_active)
 
   // Make room for the new thread.
   m_threads.Resize(num_threads + 1);
-  
+
+
   // Initialize the new thread to the same values as the current one.
   if (!spawn_active) {
     assert(m_threads[m_cur_thread].active);
@@ -2439,7 +2440,7 @@ bool cHardwareExperimental::Inst_WaitCondition_Equal(cAvidaContext& ctx)
       setInternalValue(wait_dst, m_threads[i].reg[check_reg].value, m_threads[i].reg[check_reg]);
       return true;
     }
-  }  
+  }
   // Fail to sleep if this is the last thread awake
   if (int(m_waiting_threads) == (m_threads.GetSize() - 1)) return false;
   
