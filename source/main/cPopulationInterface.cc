@@ -2034,7 +2034,14 @@ void cPopulationInterface::SetAVFacedCellID(int av_num)
 
     // Convert the x,y deme coordinates back into a cell id
     const int new_deme_cell = y * x_size + x;
+    if (new_deme_cell >= deme_size) {
+      cout << "old_deme_cell " << old_deme_cell << endl;
+      cout << "new_deme_cell " << new_deme_cell << endl;
+      cout << "facing " << facing << endl;
+    }
+    assert(new_deme_cell < deme_size);
     const int new_cell_id = deme_id * deme_size + new_deme_cell;
+    assert(new_cell_id < (deme_id + 1) * deme_size);
 
     // Store the faced cell id
     m_avatars[av_num].av_faced_cell = new_cell_id;

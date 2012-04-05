@@ -1388,8 +1388,6 @@ public:
 };
 
  // Migrations(MIN_NUM_MIGS, MAX_NUM_MIGS, PROB_MIG, 
-
-
 class cActionSetConfig : public cAction
 {
 private:
