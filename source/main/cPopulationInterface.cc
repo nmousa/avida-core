@@ -1566,7 +1566,7 @@ bool cPopulationInterface::CellInAvatarRange(int cell_id)
   std::pair<int, int> cell_pos = m_world->GetPopulation().GetDeme(m_deme_id).GetCellPosition(cell_id);
   int x_offset = abs(org_pos.first - cell_pos.first);
   int y_offset = abs(org_pos.second - cell_pos.second);
-  int total_offset = x_offset + y_offset;
+  int total_offset = max(x_offset, y_offset);
   if (total_offset <= m_world->GetConfig().NEURON_MAX_DIST.Get()) return true;
   else return false;
 }
@@ -1903,7 +1903,7 @@ void cPopulationInterface::SetAVFacedCellID(int av_num)
           if (!off_the_edge_facing) {
             // West edge facing southwest
             if (facing == 5) {
-              y -= 1;
+              y += 1;
               off_the_edge_facing = true;
             // West edge facing west
             } else if (facing == 6) {
@@ -1916,7 +1916,7 @@ void cPopulationInterface::SetAVFacedCellID(int av_num)
               }
             // West edge facing northwest
             } else if (facing == 7) {
-              y += 1;
+              y -= 1;
               off_the_edge_facing = true;
             }
           }
@@ -2034,14 +2034,7 @@ void cPopulationInterface::SetAVFacedCellID(int av_num)
 
     // Convert the x,y deme coordinates back into a cell id
     const int new_deme_cell = y * x_size + x;
-    if (new_deme_cell >= deme_size) {
-      cout << "old_deme_cell " << old_deme_cell << endl;
-      cout << "new_deme_cell " << new_deme_cell << endl;
-      cout << "facing " << facing << endl;
-    }
-    assert(new_deme_cell < deme_size);
     const int new_cell_id = deme_id * deme_size + new_deme_cell;
-    assert(new_cell_id < (deme_id + 1) * deme_size);
 
     // Store the faced cell id
     m_avatars[av_num].av_faced_cell = new_cell_id;

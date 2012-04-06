@@ -285,6 +285,7 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("rotate-neuron-AV-right-one", &cHardwareExperimental::Inst_RotateNeuronAVRight, nInstFlag::STALL),
     tInstLibEntry<tMethod>("rotate-neuron-AV-by-X", &cHardwareExperimental::Inst_RotateNeuronAVbyX, nInstFlag::STALL),
     tInstLibEntry<tMethod>("move-neuron-AV", &cHardwareExperimental::Inst_MoveNeuronAV, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("get-neuron-AV-facing", &cHardwareExperimental::Inst_GetAVFacedDir, nInstFlag::STALL),
     tInstLibEntry<tMethod>("if-neuron-input-has-output-AV", &cHardwareExperimental::Inst_IfNeuronInputHasOutputAV, nInstFlag::STALL),
     tInstLibEntry<tMethod>("if-not-neuron-input-has-output-AV", &cHardwareExperimental::Inst_IfNotNeuronInputHasOutputAV, nInstFlag::STALL),
     tInstLibEntry<tMethod>("if-neuron-input-faced-has-output-AV", &cHardwareExperimental::Inst_IfNeuronInputFacedHasOutputAV, nInstFlag::STALL),
@@ -3465,6 +3466,13 @@ bool cHardwareExperimental::Inst_MoveNeuronAV(cAvidaContext& ctx)
 
   //return m_organism->GetOrgInterface().MoveAV(ctx, avatar_num);
   return m_organism->GetOrgInterface().MoveAV(ctx);
+}
+
+bool cHardwareExperimental::Inst_GetAVFacedDir(cAvidaContext& ctx)
+{
+  const int output_reg = FindModifiedRegister(rBX);
+  setInternalValue(output_reg, m_organism->GetOrgInterface().GetAVFacing(), true);
+  return true;
 }
 
 // If the register-value-selected input avatar occupies a cell that also has an output avatar, execute next

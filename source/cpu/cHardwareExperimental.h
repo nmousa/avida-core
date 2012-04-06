@@ -547,6 +547,7 @@ private:
   bool Inst_RotateNeuronAVRight(cAvidaContext& ctx);
   bool Inst_RotateNeuronAVbyX(cAvidaContext& ctx);
   bool Inst_MoveNeuronAV(cAvidaContext& ctx);
+  bool Inst_GetAVFacedDir(cAvidaContext& ctx);
   bool Inst_IfNeuronInputHasOutputAV(cAvidaContext& ctx);
   bool Inst_IfNotNeuronInputHasOutputAV(cAvidaContext& ctx);
   bool Inst_IfNeuronInputFacedHasOutputAV(cAvidaContext& ctx);
