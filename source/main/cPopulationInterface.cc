@@ -1575,17 +1575,19 @@ bool cPopulationInterface::CellInAvatarRange(int cell_id)
 void cPopulationInterface::AddAV(int av_cell_id, int av_facing, bool input, bool output)
 {
   // Add new avatar to m_avatars
-  sIO_avatar tmpAV(av_cell_id, av_facing, -1, input, output);
+  sIO_avatar tmpAV(av_cell_id, av_facing, input, output);
   m_avatars.Push(tmpAV);
+
+  int last = m_avatars.GetSize() - 1;
 
   // If this is an input avatar add to the target cell
   if (input) {
-    m_world->GetPopulation().GetCell(av_cell_id).AddInputAV(GetOrganism());
+    m_avatars[last].av_cell_index = m_world->GetPopulation().GetCell(av_cell_id).AddInputAV(GetOrganism(), last);
   }
 
   // If this is an output avatar add to the target cell
   if (output) {
-    m_world->GetPopulation().GetCell(av_cell_id).AddOutputAV(GetOrganism());
+    m_avatars[last].av_cell_index = m_world->GetPopulation().GetCell(av_cell_id).AddOutputAV(GetOrganism(), last);
   }
 
   // Find the created avatar's faced cell
@@ -1597,14 +1599,14 @@ void cPopulationInterface::AddPredPreyAV(int av_cell_id)
 {
   // Add predator (saved as input avatar)
   if (GetOrganism()->GetForageTarget() == -2) {
-    sIO_avatar predAV(av_cell_id, 0, -1, true, false);
+    sIO_avatar predAV(av_cell_id, 0, true, false);
     m_avatars.Push(predAV);
-    m_world->GetPopulation().GetCell(av_cell_id).AddInputAV(GetOrganism());
+    m_avatars[0].av_cell_index = m_world->GetPopulation().GetCell(av_cell_id).AddInputAV(GetOrganism());
   // Add prey (saved as output avatar)
   } else {
-    sIO_avatar preyAV(av_cell_id, 0, -1, false, true);
+    sIO_avatar preyAV(av_cell_id, 0, false, true);
     m_avatars.Push(preyAV);
-    m_world->GetPopulation().GetCell(av_cell_id).AddOutputAV(GetOrganism());
+    m_avatars[0].av_cell_index = m_world->GetPopulation().GetCell(av_cell_id).AddOutputAV(GetOrganism());
   }
   // Find the created avatar's faced cell
   SetAVFacedCellID(GetNumAV() - 1);
@@ -1617,14 +1619,14 @@ void cPopulationInterface::SwitchPredPrey(int av_num)
   if (av_num < GetNumAV()) {
     // Is a predator, switching to a prey (input to output)
     if (m_avatars[av_num].av_input) {
-      m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).RemoveInputAV(GetOrganism());
-      m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).AddOutputAV(GetOrganism());
+      m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).RemoveInputAV(GetOrganism(), m_avatars[av_num].av_cell_index);
+      m_avatars[av_num].av_cell_index = m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).AddOutputAV(GetOrganism(), av_num);
       m_avatars[av_num].av_input = false;
       m_avatars[av_num].av_output = true;
     // Is prey, switching to a predator (output to intput)
     } else if (m_avatars[av_num].av_output) {
-      m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).RemoveOutputAV(GetOrganism());
-      m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).AddInputAV(GetOrganism());
+      m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).RemoveOutputAV(GetOrganism(), m_avatars[av_num].av_cell_index);
+      m_avatars[av_num].av_cell_index = m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).AddInputAV(GetOrganism(), av_num);
       m_avatars[av_num].av_input = true;
       m_avatars[av_num].av_output = false;
     }
@@ -1641,11 +1643,11 @@ void cPopulationInterface::RemoveAllAV()
     if (tmpAV.av_cell_id >= 0) {
       // If input avatar remove from the cell
       if (tmpAV.av_input) {
-        m_world->GetPopulation().GetCell(tmpAV.av_cell_id).RemoveInputAV(GetOrganism());
+        m_world->GetPopulation().GetCell(tmpAV.av_cell_id).RemoveInputAV(GetOrganism(), tmpAV.av_cell_index);
       }
       // If output avatar remove from the cell
       if (tmpAV.av_output) {
-        m_world->GetPopulation().GetCell(tmpAV.av_cell_id).RemoveOutputAV(GetOrganism());
+        m_world->GetPopulation().GetCell(tmpAV.av_cell_id).RemoveOutputAV(GetOrganism(), tmpAV.av_cell_index);
       }
     }
   }
@@ -1772,6 +1774,14 @@ int cPopulationInterface::FindAV(bool input, bool output, int av_num)
   }
 }
 
+void cPopulationInterface::SetAVCellIndex(int av_index, int av_num)
+{
+  // If the avatar exists..
+  if (av_num < GetNumAV()) {
+    m_avatars[av_num].av_cell_index = av_index;
+  }
+}
+
 // Sets the avatar's facing, then sets the faced cell
 void cPopulationInterface::SetAVFacing(int av_facing, int av_num)
 {
@@ -1797,20 +1807,20 @@ bool cPopulationInterface::SetAVCellID(int av_cell_id, int av_num)
     // If the avatar was previously in another cell remove it
     if (m_avatars[av_num].av_cell_id > -1) {
       if (m_avatars[av_num].av_input) {
-        m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).RemoveInputAV(GetOrganism());
+        m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).RemoveInputAV(GetOrganism(), m_avatars[av_num].av_cell_index);
       }
       if (m_avatars[av_num].av_output) {
-        m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).RemoveOutputAV(GetOrganism());
+        m_world->GetPopulation().GetCell(m_avatars[av_num].av_cell_id).RemoveOutputAV(GetOrganism(), m_avatars[av_num].av_cell_index);
       }
     }
 
     // If it is an input avatar, add to the new cell
     if (m_avatars[av_num].av_input) {
-      m_world->GetPopulation().GetCell(av_cell_id).AddInputAV(GetOrganism());
+      m_avatars[av_num].av_cell_index = m_world->GetPopulation().GetCell(av_cell_id).AddInputAV(GetOrganism(), av_num);
     }
     // If it is an output avatar, add to the new cell
     if (m_avatars[av_num].av_output) {
-      m_world->GetPopulation().GetCell(av_cell_id).AddOutputAV(GetOrganism());
+      m_avatars[av_num].av_cell_index = m_world->GetPopulation().GetCell(av_cell_id).AddOutputAV(GetOrganism(), av_num);
     }
 
     // Set the avatar's cell
@@ -2132,7 +2142,7 @@ tArray<cOrganism*> cPopulationInterface::GetFacedPreyAVs(int av_num)
 {
   // If the avatar exists..
   if (av_num < GetNumAV()) {
-    return m_world->GetPopulation().GetCell(m_avatars[av_num].av_faced_cell).GetCellAVs();
+    return m_world->GetPopulation().GetCell(m_avatars[av_num].av_faced_cell).GetCellOutputAVs();
   }
   tArray<cOrganism*> null_array(0, NULL);
   return null_array;

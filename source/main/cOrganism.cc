@@ -97,8 +97,6 @@ cOrganism::cOrganism(cWorld* world, cAvidaContext& ctx, const Genome& genome, in
 , m_parent_group(world->GetConfig().DEFAULT_GROUP.Get())
 , m_beggar(false)
 , m_num_point_mut(0)
-, m_av_in_index(-1)
-, m_av_out_index(-1)
 {
 	// initializing this here because it may be needed during hardware creation:
 	m_id = m_world->GetStats().GetTotCreatures();

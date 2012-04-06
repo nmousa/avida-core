@@ -310,50 +310,54 @@ double cPopulationCell::UptakeCellEnergy(double frac_to_uptake, cAvidaContext& c
  */
 
 // Adds an organism to the cell's input avatars, then keeps the list mixed by swapping the new avatar into a random position in the array
-void cPopulationCell::AddInputAV(cOrganism* org)
+int cPopulationCell::AddInputAV(cOrganism* org, int av_num)
 {
-  m_av_inputs.Push(org);
+  m_av_inputs.Push(make_pair(org, av_num));
   // Swaps the added avatar into a random position in the array
-  int loc = m_world->GetRandom().GetUInt(0, m_av_inputs.GetSize());
-  cOrganism* exist_org = m_av_inputs[loc];
-  m_av_inputs.Swap(loc, m_av_inputs.GetSize() - 1);
-  exist_org->SetAVInIndex(m_av_inputs.GetSize() - 1);
-  org->SetAVInIndex(loc);
+  int loc = m_world->GetRandom().GetUInt(0, GetNumAVInputs());
+  cOrganism* exist_org = m_av_inputs[loc].first;
+  int exist_av_num = m_av_inputs[loc].second;
+  m_av_inputs.Swap(loc, GetNumAVInputs() - 1);
+  exist_org->GetOrgInterface().SetAVCellIndex(GetNumAVInputs() - 1, exist_av_num);
+  return loc;
 }
 
 // Adds an organism to the cell's output avatars, then keeps the list mixed by swapping the new avatar into a random position in the array
-void cPopulationCell::AddOutputAV(cOrganism* org)
+int cPopulationCell::AddOutputAV(cOrganism* org, int av_num)
 {
-  m_av_outputs.Push(org);
+  m_av_outputs.Push(make_pair(org, av_num));
   // Swaps the added avatar into a random position in the array
-  int loc = m_world->GetRandom().GetUInt(0, m_av_outputs.GetSize());
-  cOrganism* exist_org = m_av_outputs[loc];
-  m_av_outputs.Swap(loc, m_av_outputs.GetSize() - 1);
-  exist_org->SetAVOutIndex(m_av_outputs.GetSize() - 1);
-  org->SetAVOutIndex(loc);
+  int loc = m_world->GetRandom().GetUInt(0, GetNumAVOutputs());
+  cOrganism* exist_org = m_av_outputs[loc].first;
+  int exist_av_num = m_av_outputs[loc].second;
+  m_av_outputs.Swap(loc, GetNumAVOutputs() - 1);
+  exist_org->GetOrgInterface().SetAVCellIndex(GetNumAVOutputs() - 1, exist_av_num);
+  return loc;
 }
 
 // Removes the organism from the cell's input avatars
-void cPopulationCell::RemoveInputAV(cOrganism* org)
+void cPopulationCell::RemoveInputAV(cOrganism* org, int av_index)
 {
   assert(HasInputAV());
-  assert(m_av_inputs[org->GetAVInIndex()] == org);
+  assert(m_av_inputs[av_index].first == org);
   unsigned int last = GetNumAVInputs() - 1;
-  cOrganism* exist_org = m_av_inputs[last];
-  exist_org->SetAVInIndex(org->GetAVInIndex());
-  m_av_inputs.Swap(org->GetAVInIndex(), last);
+  cOrganism* exist_org = m_av_inputs[last].first;
+  int exist_av_num = m_av_inputs[last].second;
+  exist_org->GetOrgInterface().SetAVCellIndex(av_index, exist_av_num);
+  m_av_inputs.Swap(av_index, last);
   m_av_inputs.Pop();
 }
 
 // Removes the organism from the cell's output avatars
-void cPopulationCell::RemoveOutputAV(cOrganism* org)
+void cPopulationCell::RemoveOutputAV(cOrganism* org, int av_index)
 {
   assert(HasOutputAV());
-  assert(m_av_outputs[org->GetAVOutIndex()] == org);
+  assert(m_av_outputs[av_index].first == org);
   unsigned int last = GetNumAVOutputs() - 1;
-  cOrganism* exist_org = m_av_outputs[last];
-  exist_org->SetAVOutIndex(org->GetAVOutIndex());
-  m_av_outputs.Swap(org->GetAVOutIndex(), last);
+  cOrganism* exist_org = m_av_outputs[last].first;
+  int exist_av_num = m_av_outputs[last].second;
+  exist_org->GetOrgInterface().SetAVCellIndex(av_index, exist_av_num);
+  m_av_outputs.Swap(av_index, last);
   m_av_outputs.Pop();
 }
 
@@ -367,7 +371,7 @@ bool cPopulationCell::HasOutputAV(cOrganism* org)
 
   // If no self-messaging, is there an output avatar for another organism in the cell
   for (int i = 0; i < GetNumAVOutputs(); i++) {
-    if (m_av_outputs[i] != org) {
+    if (m_av_outputs[i].first != org) {
       return true;
     }
   }
@@ -381,10 +385,10 @@ cOrganism* cPopulationCell::GetRandAV() const
   if (HasAV()) {
     int rand = m_world->GetRandom().GetUInt(0, GetNumAV());
     if (rand < GetNumAVInputs()) {
-      return m_av_inputs[rand];
+      return m_av_inputs[rand].first;
     }
     else {
-      return m_av_outputs[rand - GetNumAVInputs()];
+      return m_av_outputs[rand - GetNumAVInputs()].first;
     }
   }
   return NULL;
@@ -394,7 +398,7 @@ cOrganism* cPopulationCell::GetRandAV() const
 cOrganism* cPopulationCell::GetRandPredAV() const
 {
   if (HasInputAV()) {
-    return m_av_inputs[0];
+    return m_av_inputs[0].first;
   }
   return NULL;
 }
@@ -403,7 +407,7 @@ cOrganism* cPopulationCell::GetRandPredAV() const
 cOrganism* cPopulationCell::GetRandPreyAV() const
 {
   if (HasOutputAV()) {
-    return m_av_outputs[0];
+    return m_av_outputs[0].first;
   }
   return NULL;
 }
@@ -415,7 +419,7 @@ tArray<cOrganism*> cPopulationCell::GetCellInputAVs()
   tArray<cOrganism*> avatar_inputs;
   avatar_inputs.Resize(GetNumAVInputs());
   for (int i = 0; i < GetNumAVInputs(); i++) {
-    avatar_inputs[i] = m_av_inputs[i];
+    avatar_inputs[i] = m_av_inputs[i].first;
   }
   return avatar_inputs;
 }
@@ -427,7 +431,7 @@ tArray<cOrganism*> cPopulationCell::GetCellOutputAVs()
   tArray<cOrganism*> avatar_outputs;
   avatar_outputs.Resize(GetNumAVOutputs());
   for (int i = 0; i < GetNumAVOutputs(); i++) {
-    avatar_outputs[i] = m_av_outputs[i];
+    avatar_outputs[i] = m_av_outputs[i].first;
   }
   return avatar_outputs;
 }
@@ -440,10 +444,10 @@ tArray<cOrganism*> cPopulationCell::GetCellAVs()
   const int num_outputs = GetNumAVOutputs();
   avatars.Resize(GetNumAV());
   for (int i = 0; i < GetNumAVOutputs(); i++) {
-    avatars[i] = m_av_outputs[i];
+    avatars[i] = m_av_outputs[i].first;
   }
   for (int i = 0; i < GetNumAVInputs(); i++) {
-    avatars[i + num_outputs] = m_av_inputs[i];
+    avatars[i + num_outputs] = m_av_inputs[i].first;
   }
   return avatars;
 }

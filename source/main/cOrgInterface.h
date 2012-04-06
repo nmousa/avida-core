@@ -217,6 +217,7 @@ public:
   virtual int GetAVFacedDataUpdate(int av_num = 0) = 0;
   virtual int GetAVFacedDataTerritory(int av_num = 0) = 0;
   virtual int FindAV(bool input, bool output, int av_num = 0) = 0;
+  virtual void SetAVCellIndex(int av_index, int av_num = 0) = 0;
   virtual void SetAVFacing(int av_facing, int av_num = 0) = 0;
   virtual bool SetAVCellID(int av_cell_id, int av_num = 0) = 0;
   virtual void SetAVFacedCellID(int av_num = 0) = 0;

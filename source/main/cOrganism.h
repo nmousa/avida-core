@@ -700,16 +700,9 @@ private:
 	// -------- Avatar support --------
 public:
   bool MoveAV(cAvidaContext& ctx);
-  inline void SetAVInIndex(int index) { m_av_in_index = index; }
-  inline int GetAVInIndex() { return m_av_in_index; }
-  inline void SetAVOutIndex(int index) { m_av_out_index = index; }
-  inline int GetAVOutIndex() { return m_av_out_index; }
     
 	// -------- Internal Support Methods --------
 private:
-  int m_av_in_index;
-  int m_av_out_index;
-  
   void initialize(cAvidaContext& ctx);
 
   /*! The main DoOutput function.  The DoOutputs above all forward to this function. */

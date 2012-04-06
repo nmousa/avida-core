@@ -152,18 +152,18 @@ public:
   
 // -------- Avatar support -------- @JJB
 private:
-  tSmartArray<cOrganism*> m_av_inputs;
-  tSmartArray<cOrganism*> m_av_outputs;
+  tSmartArray<std::pair<cOrganism*,int> > m_av_inputs;
+  tSmartArray<std::pair<cOrganism*,int> > m_av_outputs;
 public:
   inline int GetNumAVInputs() const { return m_av_inputs.GetSize(); }
   inline int GetNumAVOutputs() const { return m_av_outputs.GetSize(); }
   inline int GetNumAV() const { return m_av_inputs.GetSize() + m_av_outputs.GetSize(); }
   inline int GetNumPredAV() const { return m_av_inputs.GetSize(); }
   inline int GetNumPreyAV() const { return m_av_outputs.GetSize(); }
-  void AddInputAV(cOrganism* org);
-  void AddOutputAV(cOrganism* org);
-  void RemoveInputAV(cOrganism* org);
-  void RemoveOutputAV(cOrganism* org);
+  int AddInputAV(cOrganism* org, int av_num = 0);
+  int AddOutputAV(cOrganism* org, int av_num = 0);
+  void RemoveInputAV(cOrganism* org, int av_index);
+  void RemoveOutputAV(cOrganism* org, int av_index);
   inline bool HasInputAV() const { return m_av_inputs.GetSize() > 0; }
   inline bool HasOutputAV() const { return m_av_outputs.GetSize() > 0; }
   inline bool HasAV() const { return (m_av_inputs.GetSize() > 0 || m_av_outputs.GetSize() > 0); }

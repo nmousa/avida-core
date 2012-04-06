@@ -261,8 +261,9 @@ private:
     int av_faced_cell;
     bool av_input;
     bool av_output;
+    int av_cell_index;
     sIO_avatar() : av_cell_id(-1), av_facing(0), av_faced_cell(-1), av_input(false), av_output(false) { ; }
-    sIO_avatar(int av_cell_id, int av_facing, int av_faced_cell, bool input, bool output) : av_cell_id(av_cell_id), av_facing(av_facing), av_faced_cell(av_faced_cell), av_input(input), av_output(output) { ; }
+    sIO_avatar(int av_cell_id, int av_facing, bool input, bool output) : av_cell_id(av_cell_id), av_facing(av_facing), av_faced_cell(-1), av_input(input), av_output(output), av_cell_index(-1) { ; }
   };
   tSmartArray<sIO_avatar> m_avatars;
 public:
@@ -288,6 +289,7 @@ public:
   int GetAVFacedDataUpdate(int av_num = 0);
   int GetAVFacedDataTerritory(int av_num = 0);
   int FindAV(bool input, bool output, int av_num = 0);
+  void SetAVCellIndex(int av_index, int av_num = 0);
   void SetAVFacing(int av_facing, int av_num = 0);
   bool SetAVCellID(int av_cell_id, int av_num = 0);
   void SetAVFacedCellID(int av_num = 0);

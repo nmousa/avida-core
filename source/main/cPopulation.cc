@@ -605,7 +605,7 @@ bool cPopulation::ActivateOffspring(cAvidaContext& ctx, const Genome& offspring_
       }
       bool org_survived = ActivateOrganism(ctx, offspring_array[i], GetCell(target_cells[i]));
       // only assign an avatar cell if the org lived through birth and it isn't the parent
-      if (m_world->GetConfig().USE_AVATARS.Get() && org_survived) {
+      if (m_world->GetConfig().USE_AVATARS.Get() && org_survived && !m_world->GetConfig().NEURAL_NETWORKING.Get()) {
         int avatar_target_cell = PlaceAvatar(parent_organism);
         if (target_cells[i] != parent_cell.GetID()) {
           offspring_array[i]->GetOrgInterface().AddPredPreyAV(avatar_target_cell);
