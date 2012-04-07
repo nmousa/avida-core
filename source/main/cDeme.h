@@ -402,7 +402,7 @@ public:
   bool HasDoneOutput() { return (m_input_buf.GetNumStored() > 0); }
   void ResetInputs(cAvidaContext& ctx);
   void ResetInput() { m_input_pointer = 0; m_input_buf.Clear(); }
-  int GetNextDemeInput(cAvidaContext& ctx);
+  int GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id);
   void DoDemeInput(int value);
   void DoDemeOutput(cAvidaContext& ctx, int value);
   double GetCurBonus() const { return m_cur_bonus; }

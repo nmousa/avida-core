@@ -1244,13 +1244,34 @@ void cDeme::ResetInputs(cAvidaContext& ctx)
   m_world->GetEnvironment().SetupInputs(ctx, m_inputs);
 }
 
-//@JJB**
-int cDeme::GetNextDemeInput(cAvidaContext& ctx)
+/* Get the next input to this deme. If we're using serial input, simply get the
+ next input. If we're using parallel input, then the specific input that is returned
+ depends on the lcoation of the organism that is requesting input.
+ */
+int cDeme::GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id)
 {
-  // Hack protection
-  if (!m_inputs.GetSize()) ResetInputs(ctx);
-  m_input_pointer %= m_inputs.GetSize();
-  return m_inputs[m_input_pointer++];
+  if (!m_inputs.GetSize()) {
+    ResetInputs(ctx);
+  }
+
+  int input = 0;
+  switch(m_world->GetConfig().DEMES_IO_HANDLING.Get()) {
+  case 0: { // serial input
+    m_input_pointer %= m_inputs.GetSize();
+    input = m_inputs[m_input_pointer++];
+    break;
+          }
+  case 1: { // parallel input
+    int row = deme_cell_id / GetWidth();
+    input = m_inputs[row % m_inputs.GetSize()];
+    break;
+          }
+  default:
+    {
+    }
+  }
+
+  return input;
 }
 
 //@JJB**

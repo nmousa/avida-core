@@ -880,11 +880,14 @@ bool cPopulationInterface::NetworkSelect(int x) {
 	return true;
 }
 
-// If the cell is turned on for deme input, retrieves the deme's next input value. @JJB
+/* If the cell is turned on for deme input, retrieves the deme's next input value.
+ */
 int cPopulationInterface::GetNextDemeInput(cAvidaContext& ctx)
 {
-  if (m_world->GetPopulation().GetCell(m_cell_id).GetCanInput()) {
-    return GetDeme()->GetNextDemeInput(ctx);
+  cPopulationCell& cell = m_world->GetPopulation().GetCell(m_cell_id);
+  if (cell.GetCanInput()) {
+    cDeme* deme = GetDeme();
+    return deme->GetNextDemeInput(ctx, deme->GetRelativeCellID(m_cell_id));
   }
   return -1;
 }
