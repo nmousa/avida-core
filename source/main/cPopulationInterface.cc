@@ -531,6 +531,10 @@ bool cPopulationInterface::SendMessage(cOrgMessage& msg) {
   }
 }
 
+int cPopulationInterface::CheckForDemeTask(cAvidaContext& ctx, int value)
+{
+  return GetDeme()->CheckForTask(ctx, value);
+}
 
 /*! Send a message to the faced organism, failing if this cell does not have 
  neighbors or if the cell currently faced is not occupied. */

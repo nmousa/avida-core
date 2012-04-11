@@ -405,6 +405,7 @@ public:
   int GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id);
   void DoDemeInput(int value);
   void DoDemeOutput(cAvidaContext& ctx, int value);
+  int CheckForTask(cAvidaContext& ctx, int value);
   double GetCurBonus() const { return m_cur_bonus; }
   void ResetMeritBonus() { m_cur_bonus = m_world->GetConfig().DEFAULT_BONUS.Get(); }
   const cMerit& GetCurMerit() { return m_cur_merit; }

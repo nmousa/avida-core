@@ -1036,8 +1036,23 @@ bool cOrganism::SendMessage(cAvidaContext& ctx, cOrgMessage& msg)
   if (m_world->GetConfig().CHECK_TASK_ON_SEND.Get()) {
     DoOutput(ctx, static_cast<int>(msg.GetData()));
   }
+
+  if (m_world->GetConfig().NEURAL_NETWORKING.Get() && m_world->GetConfig().LOG_MESSAGE_TASKS.Get()) {
+    int label = msg.GetLabel();
+    int data = msg.GetData();
+    int label_task = m_interface->CheckForDemeTask(ctx, label);
+    int data_task = m_interface->CheckForDemeTask(ctx, data);
+    if (label_task != -1 && data_task != -1) {
+      m_world->GetDriver().RaiseFatalException(-1, "Organisms sending messages that complete tasks in both the message label and data. Logging not designed for this.");
+    } else if (label_task != -1) {
+      msg.SetTaskID(label_task);
+    } else if (data_task != -1) {
+      msg.SetTaskID(data_task);
+    }
+  }
+
   // if we sent the message:
-  if(m_interface->SendMessage(msg)) {
+  if (m_interface->SendMessage(msg)) {
     MessageSent(ctx, msg);
     return true;
   }

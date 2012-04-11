@@ -56,8 +56,11 @@ public:
   int GetReceiverCellID() const { return m_receiverCellID; }
   int GetReceiverOrgID() const { return m_receiverOrgID; }
 	
-  void SetTransCellID(int transCellID) { m_transCellID = transCellID; } // @JJB**
+  void SetTransCellID(int transCellID) { m_transCellID = transCellID; }
   int GetTransCellID() const { return m_transCellID; }
+
+  void SetTaskID(int task_id) { m_task_id = task_id; }
+  int GetTaskID() const { return m_task_id; }
 
   int GetMessageType() const { return m_messageType; }
 
@@ -80,8 +83,11 @@ private:
   //! ID of the cell that the receiving organism occupied when this message was sent
   int m_receiverCellID;
 
-  // ID of the intermediate transmission cell for avatars @JJB**
+  // ID of the intermediate transmission cell for avatars
   int m_transCellID;
+
+  // For logging when tasks are completed within a network
+  int m_task_id;
 };
 
 

@@ -116,6 +116,7 @@ public:
   int GetFacedDir() { return 0; }
   bool SendMessage(cOrgMessage& msg) { return false; }
   bool SendMessage(cOrganism* recvr, cOrgMessage& msg) { return false; }
+  int CheckForDemeTask(cAvidaContext& ctx, int value) { return -1; }
   bool BroadcastMessage(cOrgMessage& msg, int depth) { return false; }
   bool BcastAlarm(int jump_label, int bcast_range) { return false; }
   void DivideOrgTestamentAmongDeme(double value) { ; }

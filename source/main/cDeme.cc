@@ -1309,7 +1309,7 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
   tArray<double> res_in;
   tArray<double> rbins_in;
 
-  // The environment, evaluates if a task and if a resulting reaction were completed
+  // The environment evaluates if a task and if a resulting reaction were completed
   bool found = env.TestOutput(ctx, result, taskctx, m_task_count, m_reaction_count, res_in, rbins_in);
 
   // No task completed, end here
@@ -1353,28 +1353,59 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
   m_cur_bonus *= result.GetMultBonus(); //**
   m_cur_bonus += result.GetAddBonus(); //**
 
-  //**
-  //if (result.GetActiveDeme()) {
-  //  double deme_bonus = GetHeritableDemeMerit().GetDouble();
-  //  deme_bonus *= result.GetMultDemeBonus();
-  //  deme_bonus += result.GetAddDemeBonus();
-  //  UpdateHeritableDemeMerit(deme_bonus);
-  //}
-
   // If applying merit changes immediately, update the deme's merit merit
   if (m_world->GetConfig().MERIT_INC_APPLY_IMMEDIATE.Get()) {
     UpdateCurMerit();
   }
 
-  //**
-  //for (int i = 0; i < num_tasks; i++) {
-  //  if (result.TaskDone(i) == true) AddCurTask(i);
-  //}
-  //for (int i = 0; i < num_reactions; i++) {
-  //  if (result.ReactionTriggered(i) == true) AddCurReaction(i);
-  //}
-
   result.Invalidate();
+}
+
+int cDeme::CheckForTask(cAvidaContext& ctx, int value)
+{
+  // Create a temporary output buffer
+  tBuffer<int> output_buf(0);
+  output_buf.Add(value);
+
+  // Needed to setup taskctx
+  tList<tBuffer<int> > other_input_list;
+  tList<tBuffer<int> > other_output_list;
+  tSmartArray<int> ext_mem;
+
+  // Setup the task context
+  cTaskContext taskctx(NULL, m_input_buf, output_buf, other_input_list, other_output_list,
+                       ext_mem, false, NULL, this);
+  taskctx.SetTaskStates(&m_task_states);
+
+  const cEnvironment& env = m_world->GetEnvironment();
+  const int num_resources = env.GetResourceLib().GetSize();
+  const int num_tasks = env.GetNumTasks();
+  const int num_reactions = env.GetReactionLib().GetSize();
+
+  // Create a new reaction result
+  if (!m_reaction_result) m_reaction_result = new cReactionResult(num_resources, num_tasks, num_reactions);
+  cReactionResult& result = *m_reaction_result;
+
+  // Filler variables
+  tArray<double> res_in;
+  tArray<double> rbins_in;
+
+  // The environment evaluates if a task and if a resulting reaction were completed
+  bool found = env.TestOutput(ctx, result, taskctx, m_task_count, m_reaction_count, res_in, rbins_in);
+
+  if (found == false) {
+    result.Invalidate();
+    return -1;
+  } else {
+    for (int task_id = 0; task_id < num_tasks; task_id++) {
+      if (result.TaskDone(task_id) == true) {
+        result.Invalidate();
+        return task_id;
+      }
+    }
+  }
+  result.Invalidate();
+  return -1;
 }
 
 //@JJB**

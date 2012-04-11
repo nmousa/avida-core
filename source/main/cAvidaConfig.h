@@ -579,6 +579,7 @@ public:
   CONFIG_ADD_VAR(NET_MUT_TYPE, int, 0, "Type of message corruption.  0 = Random Single Bit, 1 = Always Flip Last");
   CONFIG_ADD_VAR(NET_STYLE, int, 0, "Communication Style.  0 = Random Next, 1 = Receiver Facing");
   CONFIG_ADD_VAR(NET_LOG_MESSAGES, int, 0, "Whether all messages are logged; 0=false (default), 1=true.");
+  CONFIG_ADD_VAR(LOG_MESSAGE_TASKS, int, 0, "Whether message logging also checks each message for a completed task.\nNote: Only designed for deme tasks and does not give bonuses for a found task, only logs it.");
 
 
   // -------- Organism Messaging config options --------

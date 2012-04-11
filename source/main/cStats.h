@@ -982,10 +982,10 @@ protected:
   message_pred_ptr_list m_message_predicates;
   //! Type to store logged messages.
   struct message_log_entry_t {
-    message_log_entry_t(int u, int de, int s, int d, int t, unsigned int md, unsigned int ml, bool dr, bool l)
-      :	update(u), deme(de), src_cell(s), dst_cell(d), transmit_cell(t), msg_data(md), msg_label(ml), dropped(dr), lost(l) {
+    message_log_entry_t(int u, int de, int s, int d, int t, unsigned int md, unsigned int ml, int ts, bool dr, bool l)
+      :	update(u), deme(de), src_cell(s), dst_cell(d), transmit_cell(t), msg_data(md), msg_label(ml), task_id(ts), dropped(dr), lost(l) {
     }
-    int update, deme, src_cell, dst_cell, transmit_cell;
+    int update, deme, src_cell, dst_cell, transmit_cell, task_id;
     unsigned int msg_data, msg_label;
     bool dropped, lost;
   };

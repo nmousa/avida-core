@@ -142,7 +142,8 @@ public:
   //! Send a message to the organism in the given cell.
   bool SendMessage(cOrgMessage& msg, cPopulationCell& rcell);
   //! Send a message to the cell with the given cell id.
-  bool SendMessage(cOrgMessage& msg, int cellid);	
+  bool SendMessage(cOrgMessage& msg, int cellid);
+  int CheckForDemeTask(cAvidaContext& ctx, int value);
   //! Broadcast a message.
   bool BroadcastMessage(cOrgMessage& msg, int depth);
   bool BcastAlarm(int jump_label, int bcast_range);  
