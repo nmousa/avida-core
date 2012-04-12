@@ -3750,7 +3750,8 @@ void cStats::LogMessage(const cOrgMessage& msg, bool dropped, bool lost)
     msg.GetTransCellID(),
     msg.GetData(),
     msg.GetLabel(),
-    msg.GetTaskID(),
+    msg.GetLabelTaskID(),
+    msg.GetDataTaskID(),
     dropped,
     lost));
 }
@@ -3774,7 +3775,10 @@ void cStats::PrintMessageLog(const cString& filename)
     df.Write(i->msg_label, "Message label [label]");
     df.Write(i->dropped, "Dropped [dropped]");
     df.Write(i->lost, "Lost [lost]");
-    if (m_world->GetConfig().LOG_MESSAGE_TASKS.Get()) df.Write(i->task_id, "Task id [taskid]");
+    if (m_world->GetConfig().LOG_MESSAGE_TASKS.Get()) {
+      df.Write(i->label_task_id, "Label task id [labeltask]");
+      df.Write(i->data_task_id, "Data task id [datatask]");
+    }
     df.Endl();
   }
 

@@ -59,8 +59,10 @@ public:
   void SetTransCellID(int transCellID) { m_transCellID = transCellID; }
   int GetTransCellID() const { return m_transCellID; }
 
-  void SetTaskID(int task_id) { m_task_id = task_id; }
-  int GetTaskID() const { return m_task_id; }
+  void SetLabelTaskID(int task_id) { m_label_task_id = task_id; }
+  int GetLabelTaskID() const { return m_label_task_id; }
+  void SetDataTaskID(int task_id) { m_data_task_id = task_id; }
+  int GetDataTaskID() const { return m_data_task_id; }
 
   int GetMessageType() const { return m_messageType; }
 
@@ -87,7 +89,8 @@ private:
   int m_transCellID;
 
   // For logging when tasks are completed within a network
-  int m_task_id;
+  int m_label_task_id;
+  int m_data_task_id;
 };
 
 

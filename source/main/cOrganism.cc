@@ -1042,13 +1042,8 @@ bool cOrganism::SendMessage(cAvidaContext& ctx, cOrgMessage& msg)
     int data = msg.GetData();
     int label_task = m_interface->CheckForDemeTask(ctx, label);
     int data_task = m_interface->CheckForDemeTask(ctx, data);
-    if (label_task != -1 && data_task != -1) {
-      m_world->GetDriver().RaiseFatalException(-1, "Organisms sending messages that complete tasks in both the message label and data. Logging not designed for this.");
-    } else if (label_task != -1) {
-      msg.SetTaskID(label_task);
-    } else if (data_task != -1) {
-      msg.SetTaskID(data_task);
-    }
+    msg.SetLabelTaskID(label_task);
+    msg.SetDataTaskID(data_task);
   }
 
   // if we sent the message:
