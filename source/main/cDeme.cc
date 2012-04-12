@@ -1364,7 +1364,7 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
 int cDeme::CheckForTask(cAvidaContext& ctx, int value)
 {
   // Create a temporary output buffer
-  tBuffer<int> output_buf(0);
+  tBuffer<int> output_buf(1);
   output_buf.Add(value);
 
   // Needed to setup taskctx
