@@ -159,7 +159,7 @@ cPhenotype& cPhenotype::operator=(const cPhenotype& in_phen)
   cur_reaction_count       = in_phen.cur_reaction_count;
   cur_reaction_add_reward  = in_phen.cur_reaction_add_reward;
   cur_inst_count           = in_phen.cur_inst_count;
-  m_cycling_inst_count     = in_phen.m_cycling_inst_count; //@JJB**
+  m_cycling_inst_count     = in_phen.m_cycling_inst_count;
   cur_sense_count          = in_phen.cur_sense_count;
   sensed_resources         = in_phen.sensed_resources;
   cur_task_time            = in_phen.cur_task_time;
@@ -386,7 +386,7 @@ void cPhenotype::SetupOffspring(const cPhenotype& parent_phenotype, const Sequen
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
-  m_cycling_inst_count.SetAll(0); //@JJB**
+  m_cycling_inst_count.SetAll(0);
   cur_sense_count.SetAll(0);  
   cur_task_time.SetAll(0.0);  // Added for time tracking; WRE 03-18-07
   for (int j = 0; j < sensed_resources.GetSize(); j++) {
@@ -596,7 +596,7 @@ void cPhenotype::SetupInject(const Sequence& _genome)
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
-  m_cycling_inst_count.SetAll(0); //@JJB**
+  m_cycling_inst_count.SetAll(0);
   sensed_resources.SetAll(0);
   cur_sense_count.SetAll(0);
   cur_task_time.SetAll(0.0);
@@ -848,7 +848,7 @@ void cPhenotype::DivideReset(const Sequence& _genome)
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
-  m_cycling_inst_count.SetAll(0); //@JJB**
+  m_cycling_inst_count.SetAll(0);
   cur_sense_count.SetAll(0);
   cur_task_time.SetAll(0.0);
   cur_child_germline_propensity = m_world->GetConfig().DEMES_DEFAULT_GERMLINE_PROPENSITY.Get();
@@ -1201,7 +1201,7 @@ void cPhenotype::SetupClone(const cPhenotype& clone_phenotype)
   cur_stolen_reaction_count.SetAll(0);
   cur_reaction_add_reward.SetAll(0);
   cur_inst_count.SetAll(0);
-  m_cycling_inst_count.SetAll(0); //@JJB**
+  m_cycling_inst_count.SetAll(0);
   cur_sense_count.SetAll(0);  
   cur_task_time.SetAll(0.0);
   for (int j = 0; j < sensed_resources.GetSize(); j++) {
@@ -1702,7 +1702,7 @@ double cPhenotype::CalcFitness(double _merit_base, double _bonus, int _gestation
 }
 
 /* Returns the organism's total tolerance towards immigrants by counting
- the total number of dec-tolerance entries within the update window that have been executed. @JJB
+ the total number of dec-tolerance entries within the update window that have been executed.
  */
 int cPhenotype::CalcToleranceImmigrants()
 {
@@ -1730,7 +1730,7 @@ int cPhenotype::CalcToleranceImmigrants()
 }
 
 /* Returns the organism's total tolerance towards the organism's own offspring by counting
- the total number of dec-tolerance entries within the update window that have been executed. @JJB
+ the total number of dec-tolerance entries within the update window that have been executed.
  */
 int cPhenotype::CalcToleranceOffspringOwn()
 {
@@ -1762,7 +1762,7 @@ int cPhenotype::CalcToleranceOffspringOwn()
 }
 
 /* Returns the organism's total tolerance towards the offspring of others in the group by counting
- the total number of dec-tolerance entries within the update window that have been executed. @JJB
+ the total number of dec-tolerance entries within the update window that have been executed.
  */
 int cPhenotype::CalcToleranceOffspringOthers()
 {

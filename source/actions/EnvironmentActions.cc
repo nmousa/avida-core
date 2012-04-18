@@ -1136,7 +1136,7 @@ class cActionSetOptimizeMinMax : public cAction
   };
 
 // For deme input/output, an event (SetDemeIOGrid) that sets listed cells deme input/output bool status to true
-// allowing organism's to complete deme-IO in those cells. Does not support and there is not yet an event to turn cells "off". @JJB
+// allowing organism's to complete deme-IO in those cells. Does not support and there is not yet an event to turn cells "off"
 class cActionSetDemeIOGrid: public cAction
 {
 public:
@@ -1181,7 +1181,7 @@ public:
   }
 };
 
-//@JJB**
+//**
 //class cActionSendOrgInterruptMessage : public cAction
 //{
 //private:
@@ -1196,7 +1196,7 @@ public:
 //  }
 //};
 
-//@JJB**
+//**
 //class cActionSendAvatarsInterruptMessage : public cAction
 //{
 //private:

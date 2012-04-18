@@ -125,7 +125,7 @@ STATS_OUT_FILE(PrintDemeReplicationData,    deme_repl.dat       );
 STATS_OUT_FILE(PrintDemeGermlineSequestration, deme_germ.dat);
 STATS_OUT_FILE(PrintDemeReactionDiversityReplicationData, deme_rx_repl.dat );
 STATS_OUT_FILE(PrintWinningDeme, deme_winners.dat);
-STATS_OUT_FILE(PrintMaxFitnessGermlines,    demes_germlines_winners.dat); //@JJB**
+STATS_OUT_FILE(PrintMaxFitnessGermlines,    demes_germlines_winners.dat);
 STATS_OUT_FILE(PrintDemeTreatableReplicationData,    deme_repl_treatable.dat       );
 STATS_OUT_FILE(PrintDemeUntreatableReplicationData,  deme_repl_untreatable.dat       );
 STATS_OUT_FILE(PrintDemeTreatableCount,     deme_treatable.dat       );
@@ -142,9 +142,9 @@ STATS_OUT_FILE(PrintAvgUntreatableDemeTasksExeData, avg_untreatable_deme_tasks_e
 STATS_OUT_FILE(PrintPerDemeReactionData,    per_deme_reactions.dat  );
 STATS_OUT_FILE(PrintDemeTasksData,          deme_tasks.dat      );
 STATS_OUT_FILE(PrintDemeTasksExeData,       deme_tasks_exe.dat  );
-STATS_OUT_FILE(PrintDemesTasksData,         demes_tasks.dat); //@JJB**
-STATS_OUT_FILE(PrintDemesReactionsData,     demes_reactions.dat); //@JJB**
-STATS_OUT_FILE(PrintDemesFitnessData,       demes_fitness.dat); //@JJB**
+STATS_OUT_FILE(PrintDemesTasksData,         demes_tasks.dat);
+STATS_OUT_FILE(PrintDemesReactionsData,     demes_reactions.dat);
+STATS_OUT_FILE(PrintDemesFitnessData,       demes_fitness.dat);
 STATS_OUT_FILE(PrintDemeReactionData,       deme_reactions.dat  );
 STATS_OUT_FILE(PrintDemeOrgTasksData,       deme_org_tasks.dat      );
 STATS_OUT_FILE(PrintDemeOrgTasksExeData,    deme_org_tasks_exe.dat  );
@@ -461,8 +461,8 @@ public:
   }
 };
 
-//@JJB**
 // Only designed to handle a single instruction set
+// Prints the number of instruction executions by each organism since the last time it was printed
 class cActionPrintCyclingInstructionData : public cAction
 {
 private:
@@ -2837,7 +2837,7 @@ public:
   }
 };
 
-//@JJB**
+// Clears the message log, used to prevent congestion from the log getting too large
 class cActionClearMessageLog : public cAction
 {
 public:
@@ -2854,7 +2854,7 @@ public:
   }
 };
 
-//@JJB**
+// Prints how many messages were successful, dropped or lost for each deme
 class cActionPrintDemeMessageData : public cAction
 {
 private:
@@ -4455,7 +4455,7 @@ public:
   }
 };
 
-//@JJB**
+// Prints deme merits based on deme-IO tasks
 class cActionPrintDemesMeritsData : public cAction
 {
 public:
@@ -4469,7 +4469,7 @@ public:
   }
 };
 
-//@JJB**
+// Prints the current position of all avatars for every organism
 class cActionPrintNeuronAvatars : public cAction
 {
 private:
@@ -4818,7 +4818,7 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintCountData>("PrintCountData");
   action_lib->Register<cActionPrintMessageData>("PrintMessageData");
   action_lib->Register<cActionPrintMessageLog>("PrintMessageLog");
-  action_lib->Register<cActionClearMessageLog>("ClearMessageLog"); //@JJB**
+  action_lib->Register<cActionClearMessageLog>("ClearMessageLog");
   action_lib->Register<cActionPrintInterruptData>("PrintInterruptData");
   action_lib->Register<cActionPrintTotalsData>("PrintTotalsData");
   action_lib->Register<cActionPrintThreadsData>("PrintThreadsData");
@@ -4856,7 +4856,7 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintSenseData>("PrintSenseData");
   action_lib->Register<cActionPrintSenseExeData>("PrintSenseExeData");
   action_lib->Register<cActionPrintInstructionData>("PrintInstructionData");
-  action_lib->Register<cActionPrintCyclingInstructionData>("PrintCyclingInstructionData"); //@JJB**
+  action_lib->Register<cActionPrintCyclingInstructionData>("PrintCyclingInstructionData");
   action_lib->Register<cActionPrintInternalTasksData>("PrintInternalTasksData");
   action_lib->Register<cActionPrintInternalTasksQualData>("PrintInternalTasksQualData");
   action_lib->Register<cActionPrintSleepData>("PrintSleepData");
@@ -4908,14 +4908,14 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintDemeGermlineSequestration>("PrintDemeGermlineSequestration");
   action_lib->Register<cActionPrintDemeReactionDiversityReplicationData>("PrintDemeReactionDiversityReplicationData");
   action_lib->Register<cActionPrintWinningDeme>("PrintWinningDeme");
-  action_lib->Register<cActionPrintMaxFitnessGermlines>("PrintMaxFitnessGermlines"); //@JJB**
+  action_lib->Register<cActionPrintMaxFitnessGermlines>("PrintMaxFitnessGermlines");
   action_lib->Register<cActionPrintDemeTreatableReplicationData>("PrintDemeTreatableReplicationData");
   action_lib->Register<cActionPrintDemeUntreatableReplicationData>("PrintDemeUntreatableReplicationData");
   action_lib->Register<cActionPrintDemeTreatableCount>("PrintDemeTreatableCount");
   action_lib->Register<cActionPrintDemeFitness>("PrintDemeFitnessData");
   action_lib->Register<cActionPrintDemeLifeFitness>("PrintDemeLifeFitnessData");
   action_lib->Register<cActionPrintDemeTasks>("PrintDemeTasksData");
-  action_lib->Register<cActionPrintDemeMessageData>("PrintDemeMessageData"); //@JJB**
+  action_lib->Register<cActionPrintDemeMessageData>("PrintDemeMessageData");
 
   action_lib->Register<cActionPrintDemeCompetitionData>("PrintDemeCompetitionData");
   action_lib->Register<cActionPrintDemeNetworkData>("PrintDemeNetworkData");
@@ -4940,10 +4940,10 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintPerDemeGenPerFounderData>("PrintPerDemeGenPerFounderData");
   action_lib->Register<cActionPrintDemeMigrationSuicidePoints>("PrintDemeMigrationSuicidePoints");
   
-  action_lib->Register<cActionPrintDemesTasksData>("PrintDemesTasksData"); //@JJB**
-  action_lib->Register<cActionPrintDemesReactionsData>("PrintDemesReactionsData"); //@JJB**
-  action_lib->Register<cActionPrintDemesMeritsData>("PrintDemesMeritsData"); //@JJB**
-  action_lib->Register<cActionPrintDemesFitnessData>("PrintDemesFitnessData"); //@JJB**
+  action_lib->Register<cActionPrintDemesTasksData>("PrintDemesTasksData");
+  action_lib->Register<cActionPrintDemesReactionsData>("PrintDemesReactionsData");
+  action_lib->Register<cActionPrintDemesMeritsData>("PrintDemesMeritsData");
+  action_lib->Register<cActionPrintDemesFitnessData>("PrintDemesFitnessData");
 
   action_lib->Register<cActionPrintMultiProcessData>("PrintMultiProcessData");
   action_lib->Register<cActionPrintProfilingData>("PrintProfilingData");
@@ -5035,7 +5035,7 @@ void RegisterPrintActions(cActionLibrary* action_lib)
   action_lib->Register<cActionPrintTargets>("PrintTargets");
   action_lib->Register<cActionPrintHGTData>("PrintHGTData");
 
-  action_lib->Register<cActionPrintNeuronAvatars>("PrintNeuronAvatars");//@JJB**
+  action_lib->Register<cActionPrintNeuronAvatars>("PrintNeuronAvatars");
 
   action_lib->Register<cActionSetVerbose>("SetVerbose");
   action_lib->Register<cActionSetVerbose>("VERBOSE");

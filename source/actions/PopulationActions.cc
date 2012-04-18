@@ -3302,7 +3302,7 @@ public:
   }
 };
 
-// Deme competition based on demes' merits with minor fitness bonuses for successful messaging and deme-IO, implemented for neural networking. @JJB
+// Deme competition based on demes' merits with minor fitness bonuses for successful messaging and deme-IO, implemented for neural networking.
 class cActionCompeteDemesByMerit : public cAbstractCompeteDemes
 {
 public:

@@ -2580,7 +2580,7 @@ void cStats::PrintDemeOrgReactionData(const cString& filename)
   df.Endl();
 }
 
-//@JJB**
+// Prints tasks completed by each deme, for deme-IO tasks
 void cStats::PrintDemesTasksData(const cString& filename)
 {
   cDataFile& df = m_world->GetDataFile(filename);
@@ -2599,7 +2599,7 @@ void cStats::PrintDemesTasksData(const cString& filename)
   df.Endl();
 }
 
-//@JJB**
+//** Prints reactions completed by each deme, for deme-IO tasks
 void cStats::PrintDemesReactionsData(const cString& filename)
 {
   cDataFile& df = m_world->GetDataFile(filename);
@@ -2618,7 +2618,7 @@ void cStats::PrintDemesReactionsData(const cString& filename)
   df.Endl();
 }
 
-//@JJB**
+// Prints all demes fitnesses, relies on deme competitions being called to update the fitnesses
 void cStats::PrintDemesFitnessData(const cString& filename)
 {
   if (int(m_last_deme_fitness.size()) == 0) return;
@@ -2725,7 +2725,7 @@ void cStats::PrintDemeMigrationSuicidePoints(const cString& filename)
 
 void cStats::CompeteDemes(const std::vector<double>& fitness)
 {
-  m_last_deme_fitness = m_deme_fitness; //@JJB**
+  m_last_deme_fitness = m_deme_fitness;
   m_deme_fitness = fitness;
 }
 
@@ -2750,7 +2750,7 @@ void cStats::PrintDemeCompetitionData(const cString& filename)
   }
   df.Endl();
 
-  m_last_deme_fitness = m_deme_fitness; //@JJB**
+  m_last_deme_fitness = m_deme_fitness;
   m_deme_fitness.clear();
 }
 
@@ -3769,8 +3769,10 @@ void cStats::PrintMessageLog(const cString& filename)
     df.Write(i->update, "Update [update]");
     df.Write(i->deme, "Deme ID [deme]");
     df.Write(i->src_cell, "Source [src]");
+    if (m_world->GetConfig().NEURAL_NETWORKING.Get()) {
+      df.Write(i->transmit_cell, "Transmission_cell [trs]");
+    }
     df.Write(i->dst_cell, "Destination [dst]");
-    df.Write(i->transmit_cell, "Transmission_cell [trs]");
     df.Write(i->msg_data, "Message data [data]");
     df.Write(i->msg_label, "Message label [label]");
     df.Write(i->dropped, "Dropped [dropped]");
@@ -3956,7 +3958,9 @@ void cStats::PrintWinningDeme(const cString& filename)
   df.Endl();
 }
 
-//@JJB**
+/* Searches all deme fitnesses to find any which are at equally the most fit
+   prints these max fitness germlines and their statistics used for neural networking.
+ */
 void cStats::PrintMaxFitnessGermlines(const cString& filename)
 {
   if (int(m_last_deme_fitness.size()) == 0) return;
@@ -3978,7 +3982,7 @@ void cStats::PrintMaxFitnessGermlines(const cString& filename)
   if (!found_max) return;
 
   cDataFile& df = m_world->GetDataFile(filename);
-  df.WriteComment("The highest fitness deme germlines.");
+  df.WriteComment("The highest fitness deme germlines, and their properties. Designed for use with neural networking.");
   df.WriteTimeStamp();
 
   for (int i = 0; i < (int)highest_demes.size(); i++) {
@@ -3999,6 +4003,10 @@ void cStats::PrintMaxFitnessGermlines(const cString& filename)
     df.Write(highest_fitness, "Deme fitness [fitness]");
     df.Write(genotype_id, "Genome ID [genomeid]");
     df.Write(genome, "Genome sequence [genome]");
+    const int num_tasks = m_world->GetEnvironment().GetNumTasks();
+    for (int task_id = 0; task_id < num_tasks; task_id++) {
+      df.Write(deme.GetTaskCount()[task_id], task_names[task_id]);
+    }
 
     df.Endl();
   }

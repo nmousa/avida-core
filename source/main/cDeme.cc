@@ -34,8 +34,8 @@
 #include "cOrgMessagePredicate.h"
 #include "cOrgMovementPredicate.h"
 #include "cDemePredicate.h"
-#include "cReactionResult.h" //@JJB**
-#include "cTaskState.h" //@JJB**
+#include "cReactionResult.h"
+#include "cTaskState.h"
 
 #include <cmath>
 
@@ -83,10 +83,10 @@ cDeme::cDeme()
   , suicides(0)
   , m_network(0)
   , m_num_reproductives(0)
-  , m_input_pointer(0) //@JJB**
-  , m_input_buf(0) //@JJB**
-  , m_output_buf(0) //@JJB**
-  , m_reaction_result(NULL) //@JJB**
+  , m_input_pointer(0)
+  , m_input_buf(0)
+  , m_output_buf(0)
+  , m_reaction_result(NULL)
 {
 }
 
@@ -94,14 +94,14 @@ cDeme::~cDeme()
 {
   if(m_network) delete m_network;
 
-  // Remove Task States @JJB**
+  // Remove Task States
   tArray<cTaskState*> task_states(0);
   m_task_states.GetValues(task_states);
   for (int i = 0; i < task_states.GetSize(); i++) delete task_states[i];
   delete m_reaction_result;
 }
 
-cDeme& cDeme::operator=(const cDeme& in_deme) //@JJB**
+cDeme& cDeme::operator=(const cDeme& in_deme)
 {
   m_world                             = in_deme.m_world;
   _id                                 = in_deme._id;
@@ -242,17 +242,17 @@ void cDeme::Setup(int id, const tArray<int> & in_cells, int in_width, cWorld* wo
   m_num_active = 0;
   m_num_reproductives = 0;
 
-  m_input_buf = tBuffer<int>(m_world->GetEnvironment().GetInputSize()); //@JJB**
-  m_output_buf = tBuffer<int>(m_world->GetEnvironment().GetOutputSize()); //@JJB**
-  m_task_count.ResizeClear(num_tasks); //@JJB**
+  m_input_buf = tBuffer<int>(m_world->GetEnvironment().GetInputSize());
+  m_output_buf = tBuffer<int>(m_world->GetEnvironment().GetOutputSize());
+  m_task_count.ResizeClear(num_tasks);
   m_task_count.SetAll(0);
-  m_reaction_count.ResizeClear(m_world->GetEnvironment().GetReactionLib().GetSize()); //@JJB**
+  m_reaction_count.ResizeClear(m_world->GetEnvironment().GetReactionLib().GetSize());
   m_reaction_count.SetAll(0);
-  m_last_task_count.ResizeClear(num_tasks); //@JJB**
+  m_last_task_count.ResizeClear(num_tasks);
   m_last_task_count.SetAll(0);
-  m_cur_reaction_add_reward.ResizeClear(m_world->GetEnvironment().GetReactionLib().GetSize()); //@JJB**
+  m_cur_reaction_add_reward.ResizeClear(m_world->GetEnvironment().GetReactionLib().GetSize());
   m_cur_reaction_add_reward.SetAll(0.0);
-  m_cur_bonus = m_world->GetConfig().DEFAULT_BONUS.Get(); //@JJB**
+  m_cur_bonus = m_world->GetConfig().DEFAULT_BONUS.Get();
   if (m_world->GetConfig().BASE_MERIT_METHOD.Get() == BASE_MERIT_CONST) {
     m_cur_merit = m_world->GetConfig().BASE_CONST_MERIT.Get();
   } else {
@@ -516,14 +516,14 @@ void cDeme::Reset(cAvidaContext& ctx, bool resetResources, double deme_energy)
   m_shannon_matrix.clear();
   m_num_reproductives = 0;
 
-  m_input_pointer = 0; //@JJB**
-  m_input_buf.Clear(); //@JJB**
-  m_output_buf.Clear(); //@JJB**
-  m_last_task_count = m_task_count; //@JJB**
-  m_task_count.SetAll(0); //@JJB**
-  m_reaction_count.SetAll(0); //@JJB**
-  m_cur_reaction_add_reward.SetAll(0.0); //@JJB**
-  m_cur_bonus = m_world->GetConfig().DEFAULT_BONUS.Get(); //@JJB**
+  m_input_pointer = 0;
+  m_input_buf.Clear();
+  m_output_buf.Clear();
+  m_last_task_count = m_task_count;
+  m_task_count.SetAll(0);
+  m_reaction_count.SetAll(0);
+  m_cur_reaction_add_reward.SetAll(0.0);
+  m_cur_bonus = m_world->GetConfig().DEFAULT_BONUS.Get();
   if (m_world->GetConfig().BASE_MERIT_METHOD.Get() == BASE_MERIT_CONST) {
     m_cur_merit = m_world->GetConfig().BASE_CONST_MERIT.Get();
   } else {
@@ -1274,13 +1274,13 @@ int cDeme::GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id)
   return input;
 }
 
-//@JJB**
+// Adds the value to the deme's input buffer to be checked for tasks
 void cDeme::DoDemeInput(int value)
 {
   m_input_buf.Add(value);
 }
 
-//@JJB**
+// Adds the value to the deme's output and checks if any tasks were completed
 void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
 {
   // Add value to the output buffer
@@ -1350,8 +1350,8 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
   }
 
   // Update deme's merit bonus from reaction
-  m_cur_bonus *= result.GetMultBonus(); //**
-  m_cur_bonus += result.GetAddBonus(); //**
+  m_cur_bonus *= result.GetMultBonus();
+  m_cur_bonus += result.GetAddBonus();
 
   // If applying merit changes immediately, update the deme's merit merit
   if (m_world->GetConfig().MERIT_INC_APPLY_IMMEDIATE.Get()) {
@@ -1408,7 +1408,7 @@ int cDeme::CheckForTask(cAvidaContext& ctx, int value)
   return -1;
 }
 
-//@JJB**
+// Applies the current merit bonus to the deme
 void cDeme::UpdateCurMerit()
 {
   double merit_base;
@@ -1420,7 +1420,7 @@ void cDeme::UpdateCurMerit()
   m_cur_merit = merit_base * m_cur_bonus;
 }
 
-//@JJB**
+// Calculates but does not apply what the current merit bonus is
 cMerit cDeme::CalcCurMerit()
 {
   cMerit cur_merit;

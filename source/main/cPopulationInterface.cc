@@ -431,7 +431,7 @@ bool cPopulationInterface::TestOnDivide()
 
 /*! Internal-use method to consolidate message-sending code.
  */
-bool cPopulationInterface::SendMessage(cOrgMessage& msg, cPopulationCell& rcell) //**
+bool cPopulationInterface::SendMessage(cOrgMessage& msg, cPopulationCell& rcell)
 {
   bool dropped = false;
   bool lost = false;
@@ -466,7 +466,7 @@ bool cPopulationInterface::SendMessage(cOrgMessage& msg, cPopulationCell& rcell)
   // record this message, regardless of whether it's actually received.
   if (m_world->GetConfig().NET_LOG_MESSAGES.Get()) {
     if (m_world->GetConfig().NEURAL_NETWORKING.Get()) {
-      // If neural networking, only save if the message was lost or dropped, successful messages are logged later @JJB**
+      // If neural networking, only save if the message was lost or dropped, successful messages are logged later
       if (dropped || lost) m_world->GetStats().LogMessage(msg, dropped, lost);
     } else {
       m_world->GetStats().LogMessage(msg, dropped, lost);
@@ -483,7 +483,7 @@ bool cPopulationInterface::SendMessage(cOrgMessage& msg, cPopulationCell& rcell)
     m_world->GetStats().SentMessage(msg);
     GetDeme()->MessageSuccessfullySent();
   } else {
-    // If using neural networking avatars, message must be sent to all orgs with input avatars in the cell. @JJB
+    // If using neural networking avatars, message must be sent to all orgs with input avatars in the cell.
     cOrganism* sender = GetOrganism();
     for (int i = 0; i < rcell.GetNumAVInputs(); i++) {
       cOrganism* recvr = rcell.GetCellInputAVs()[i];
@@ -896,7 +896,7 @@ int cPopulationInterface::GetNextDemeInput(cAvidaContext& ctx)
   return -1;
 }
 
-// If the cell is turned on for deme input, adds the value to the deme's input buffer. @JJB
+// If the cell is turned on for deme input, adds the value to the deme's input buffer.
 void cPopulationInterface::DoDemeInput(int value)
 {
   if (m_world->GetPopulation().GetCell(m_cell_id).GetCanInput()) {
@@ -904,7 +904,7 @@ void cPopulationInterface::DoDemeInput(int value)
   }
 }
 
-// If the cell is turned on for deme output, adds the value to the deme's output buffer. @JJB
+// If the cell is turned on for deme output, adds the value to the deme's output buffer.
 void cPopulationInterface::DoDemeOutput(cAvidaContext& ctx, int value)
 {
   if (m_world->GetPopulation().GetCell(m_cell_id).GetCanOutput()) {
@@ -1505,7 +1505,7 @@ void cPopulationInterface::AttackFacedOrg(cAvidaContext& ctx, int loser)
  * Each cell contains an array of the organisms with avatars in that cell, linking the cells back to
  * the organisms (in cPopulationCell). This allows both multiple organisms to occupy the same cell
  * and organisms to occupy/interact with multiple cells. Currently only two types of avatars are
- * supported: input and output, also used as predators and prey. @JJB
+ * supported: input and output, also used as predators and prey.
  */
 
 // Check if the avatar has any output avatars sharing the same cell
@@ -1683,7 +1683,7 @@ int cPopulationInterface::GetAVCellID(int av_num)
 }
 
 // Returns cell id faced by avatar, only for torus and bounded worlds
-int cPopulationInterface::GetAVFacedCellID(int av_num)//** GetCellXPosition()
+int cPopulationInterface::GetAVFacedCellID(int av_num)
 {
   if (av_num < GetNumAV()) {
     return m_avatars[av_num].av_faced_cell;
