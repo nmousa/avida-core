@@ -31,6 +31,7 @@
 #include "cResource.h"
 #include "cStats.h"
 #include "cWorld.h"
+#include "cOrgMessage.h"
 #include "cOrgMessagePredicate.h"
 #include "cOrgMovementPredicate.h"
 #include "cDemePredicate.h"
@@ -86,6 +87,7 @@ cDeme::cDeme()
   , m_input_pointer(0)
   , m_input_buf(0)
   , m_output_buf(0)
+  , m_input_cells(0)
   , m_reaction_result(NULL)
 {
 }
@@ -171,6 +173,7 @@ cDeme& cDeme::operator=(const cDeme& in_deme)
   m_inputs                            = in_deme.m_inputs;
   m_input_buf                         = in_deme.m_input_buf;
   m_output_buf                        = in_deme.m_output_buf;
+  m_input_cells                       = in_deme.m_input_cells;
 //m_reaction_result                   = in_deme.m_reaction_result;
   m_task_count                        = in_deme.m_task_count;
   m_reaction_count                    = in_deme.m_reaction_count;
@@ -1280,6 +1283,22 @@ void cDeme::DoDemeInput(int value)
   m_input_buf.Add(value);
 }
 
+//**
+void cDeme::SendInputsMessage(cAvidaContext& ctx)
+{
+  for (int i = 0; i < m_input_cells.GetSize(); i++) {
+    int deme_cell_id = m_input_cells[i];
+    cPopulationCell& cell = m_world->GetPopulation().GetCell(GetAbsoluteCellID(deme_cell_id));
+    int input_value = GetNextDemeInput(ctx, deme_cell_id);
+    cOrgMessage msg = cOrgMessage();
+    msg.SetLabel(input_value);
+    if (cell.GetNumAVInputs()) DoDemeInput(input_value);
+    for (int i = 0; i < cell.GetNumAVInputs(); i++) {
+      cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
+    }
+  }
+}
+
 // Adds the value to the deme's output and checks if any tasks were completed
 void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
 {
@@ -1316,6 +1335,12 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
   if (found == false) {
     result.Invalidate();
     return;
+  }
+
+  // If a task was completed, reset the inputs by clearing, and send a new stimulus to the inputs
+  if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2) {
+    m_inputs.Resize(0);
+    SendInputsMessage(ctx);
   }
 
   // Update records with the results..

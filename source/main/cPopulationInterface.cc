@@ -444,92 +444,45 @@ bool cPopulationInterface::SendMessage(cOrgMessage& msg, cPopulationCell& rcell)
     dropped = true;
   }
 
-  if (!m_world->GetConfig().NEURAL_NETWORKING.Get() || m_world->GetConfig().USE_AVATARS.Get() != 2) {
-    // Not using neural networking avatars..
-    // Fail if the cell we're facing is not occupied.
-    if(!rcell.IsOccupied()) lost = true;
-  } else {
-    // If neural networking with avatars check for input avatars in this cell
-    if (!rcell.GetNumAVInputs()) lost = true;
-    // If self communication is not allowed, must check for an input avatar for another organism
-    else if (!m_world->GetConfig().SELF_COMMUNICATION.Get()) {
-      lost = true;
-      cOrganism* sender = GetOrganism();
-      for (int i = 0; i < rcell.GetNumAVInputs(); i++) {
-        if (sender != rcell.GetCellInputAVs()[i]) lost = false;
-      }
-    }
-  }
+  // Fail if the cell we're facing is not occupied.
+  if(!rcell.IsOccupied()) lost = true;
 
   if (lost) GetDeme()->messageSendFailed();
 
   // record this message, regardless of whether it's actually received.
   if (m_world->GetConfig().NET_LOG_MESSAGES.Get()) {
-    if (m_world->GetConfig().NEURAL_NETWORKING.Get()) {
-      // If neural networking, only save if the message was lost or dropped, successful messages are logged later
-      if (dropped || lost) m_world->GetStats().LogMessage(msg, dropped, lost);
-    } else {
-      m_world->GetStats().LogMessage(msg, dropped, lost);
-    }
+    m_world->GetStats().LogMessage(msg, dropped, lost);
   }
 
-  if(dropped || lost) return false;
+  if (dropped || lost) return false;
 
-  if (!m_world->GetConfig().NEURAL_NETWORKING.Get() || m_world->GetConfig().USE_AVATARS.Get() != 2) {
-    // Not using neural networking avatars..
-    cOrganism* recvr = rcell.GetOrganism();
-    assert(recvr != 0);
-    recvr->ReceiveMessage(msg);
-    m_world->GetStats().SentMessage(msg);
-    GetDeme()->MessageSuccessfullySent();
-  } else {
-    // If using neural networking avatars, message must be sent to all orgs with input avatars in the cell.
-    cOrganism* sender = GetOrganism();
-    for (int i = 0; i < rcell.GetNumAVInputs(); i++) {
-      cOrganism* recvr = rcell.GetCellInputAVs()[i];
-      assert(recvr != 0);
-      if ((sender != recvr) || m_world->GetConfig().SELF_COMMUNICATION.Get()) {
-        recvr->ReceiveMessage(msg);
-        m_world->GetStats().SentMessage(msg);
-        GetDeme()->MessageSuccessfullySent();
-      }
-    }
-  }
+  cOrganism* recvr = rcell.GetOrganism();
+  assert(recvr != 0);
+  recvr->ReceiveMessage(msg);
+  m_world->GetStats().SentMessage(msg);
+  GetDeme()->MessageSuccessfullySent();
   return true;
 }
 
-bool cPopulationInterface::SendMessage(cOrgMessage& msg, int cellid) {
+bool cPopulationInterface::SendMessage(cOrgMessage& msg, int cellid)
+{
   cPopulationCell& cell = m_world->GetPopulation().GetCell(cellid);
-  if (m_world->GetConfig().NEURAL_NETWORKING.Get() && m_world->GetConfig().USE_AVATARS.Get() == 2) {
-    msg.SetTransCellID(cellid);
-  }
   return SendMessage(msg, cell);
 }
 
 /*! Send a message to the faced organism, failing if this cell does not have 
  neighbors or if the cell currently faced is not occupied.
  */
-bool cPopulationInterface::SendMessage(cOrgMessage& msg) {
+bool cPopulationInterface::SendMessage(cOrgMessage& msg)
+{
   cPopulationCell& cell = m_world->GetPopulation().GetCell(m_cell_id);
   assert(cell.IsOccupied()); // This organism; sanity.
 
-  // If neural networking ..
-  if (m_world->GetConfig().USE_AVATARS.Get() == 2 && m_world->GetConfig().NEURAL_NETWORKING.Get()) {
-    //assert(m_avatars);
-    bool message_sent = false;
-    for (int i = 0; i < GetNumAV(); i++) {
-      if (m_avatars[i].av_output) {
-        message_sent = (message_sent || SendMessage(msg, m_avatars[i].av_cell_id));
-      }
-    }
-    return message_sent;
-  // Regular messaging (not neural networking)..
-  } else {
-    cPopulationCell* rcell = cell.ConnectionList().GetFirst();
-    assert(rcell != 0); // Cells should never be null.	
-    return SendMessage(msg, *rcell);
-  }
+  cPopulationCell* rcell = cell.ConnectionList().GetFirst();
+  assert(rcell != 0); // Cells should never be null.
+  return SendMessage(msg, *rcell);
 }
+
 
 int cPopulationInterface::CheckForDemeTask(cAvidaContext& ctx, int value)
 {
@@ -1499,6 +1452,75 @@ void cPopulationInterface::AttackFacedOrg(cAvidaContext& ctx, int loser)
   m_world->GetPopulation().AttackFacedOrg(ctx, loser);
 }
 
+
+//**
+bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& msg)
+{
+  bool message_sent = false;
+  for (int avatar_id = 0; avatar_id < GetNumAV(); avatar_id++) {
+    if (m_avatars[avatar_id].av_output) {
+      message_sent = (message_sent || SendNeuralMessage(ctx, msg, m_avatars[avatar_id].av_cell_id));
+    }
+  }
+  return message_sent;
+}
+
+//**
+bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& msg, int cell_id)
+{
+  msg.SetTransCellID(cell_id);
+  cPopulationCell& cell = m_world->GetPopulation().GetCell(cell_id);
+
+  bool dropped = false;
+  bool lost = false;
+
+  static const double drop_prob = m_world->GetConfig().NET_DROP_PROB.Get();
+  if ((drop_prob > 0.0) && m_world->GetRandom().P(drop_prob)) {
+    // message dropped
+    GetDeme()->messageDropped();
+    GetDeme()->messageSendFailed();
+    dropped = true;
+  }
+
+  if (!dropped) {
+    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2 && m_world->GetPopulation().GetCell(cell_id).GetCanOutput()) {
+      GetDeme()->DoDemeOutput(ctx, msg.GetLabel());
+      GetDeme()->DoDemeOutput(ctx, msg.GetData());
+    }
+  }
+
+  // Check for inputs in this cell
+  if (!cell.GetNumAVInputs()) lost = true;
+  // If self communication is not allowed, must check for an input avatar for another organism
+  else if (!m_world->GetConfig().SELF_COMMUNICATION.Get()) {
+    lost = true;
+    cOrganism* sender = GetOrganism();
+    for (int i = 0; i < cell.GetNumAVInputs(); i++) {
+      if (sender != cell.GetCellInputAVs()[i]) lost = false;
+    }
+  }
+
+  if (lost) GetDeme()->messageSendFailed();
+
+  if (dropped || lost) {
+    if (m_world->GetConfig().NET_LOG_MESSAGES.Get()) {
+      m_world->GetStats().LogMessage(msg, dropped, lost);
+    }
+    return false;
+  }
+
+  cOrganism* sender = GetOrganism();
+  for (int i = 0; i < cell.GetNumAVInputs(); i++) {
+    cOrganism* recvr = cell.GetCellInputAVs()[i];
+    assert(recvr != 0);
+    if ((sender != recvr) || m_world->GetConfig().SELF_COMMUNICATION.Get()) {
+      recvr->ReceiveMessage(msg);
+      m_world->GetStats().SentMessage(msg);
+      GetDeme()->MessageSuccessfullySent();
+    }
+  }
+  return true;
+}
 
 // -------- Avatar support --------
 /* Each organism carries an array of avatars linking the organism to any cells it is occupying.

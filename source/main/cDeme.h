@@ -44,8 +44,8 @@ class cOrganism;
 class cOrgMovementPredicate;
 class cOrgMessagePredicate;
 class cDemePredicate;
-class cReactionResult; //@JJB**
-class cTaskState; //@JJB**
+class cReactionResult;
+class cTaskState;
 
 /*! Demes are groups of cells in the population that are somehow bound together
 as a unit.  The deme object is used from within cPopulation to manage these 
@@ -136,19 +136,19 @@ private:
   tVector<cOrgMovementPredicate*> movement_pred_list;  // Movement Predicates
 
   // For the points infrastructure
-  double points; 
-  unsigned int migrations_out; 
+  double points;
+  unsigned int migrations_out;
   unsigned int migrations_in;
   unsigned int suicides;
-	
+
 public:
-	//! Constructor.
+  //! Constructor.
   cDeme();
-	
-	//! Destructor.
+
+  //! Destructor.
   ~cDeme();
   
-  cDeme& operator=(const cDeme&); //@JJB**
+  cDeme& operator=(const cDeme&);
   void Setup(int id, const tArray<int>& in_cells, int in_width = -1, cWorld* world = NULL);
 
   int GetID() const { return _id; }
@@ -278,7 +278,7 @@ public:
   void Update(double time_step) { deme_resource_count.Update(time_step); }
   int GetRelativeCellID(int absolute_cell_id) const { return absolute_cell_id % GetSize(); } //!< assumes all demes are the same size
   int GetAbsoluteCellID(int relative_cell_id) const { return relative_cell_id + (_id * GetSize()); } //!< assumes all demes are the same size
-	
+
   void SetCellEventGradient(int x1, int y1, int x2, int y2, int delay, int duration, bool static_pos, int time_to_live);
   int GetNumEvents();
   void SetCellEvent(int x1, int y1, int x2, int y2, int delay, int duration, bool static_position, int total_events);
@@ -383,12 +383,13 @@ public:
   //! Retrieve this deme's network.
   cDemeNetwork& GetNetwork();
 
-  // -------- Deme Input and Output -------- @JJB**
+  // -------- Deme Input and Output -------- @JJB
 private:
   int m_input_pointer;
   tArray<int> m_inputs;
   tBuffer<int> m_input_buf;
   tBuffer<int> m_output_buf;
+  tArray<int> m_input_cells;
   tHashMap<void*, cTaskState*> m_task_states;
   cReactionResult* m_reaction_result;
   tArray<int> m_task_count;               // Total times each task was performed (resetable during the life of the deme)
@@ -404,6 +405,8 @@ public:
   void ResetInput() { m_input_pointer = 0; m_input_buf.Clear(); }
   int GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id);
   void DoDemeInput(int value);
+  void SetInputCells(tArray<int> input_cells) { m_input_cells = input_cells; }
+  void SendInputsMessage(cAvidaContext& ctx);
   void DoDemeOutput(cAvidaContext& ctx, int value);
   int CheckForTask(cAvidaContext& ctx, int value);
   double GetCurBonus() const { return m_cur_bonus; }

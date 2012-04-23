@@ -2036,6 +2036,7 @@ bool cHardwareExperimental::Inst_TaskOutputExpire(cAvidaContext& ctx)
   return true;
 }
 
+//**
 bool cHardwareExperimental::Inst_DemeIO(cAvidaContext& ctx)
 {
   const int reg_used = FindModifiedRegister(rBX);

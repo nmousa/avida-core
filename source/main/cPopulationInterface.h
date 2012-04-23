@@ -253,6 +253,11 @@ public:
   
   void AttackFacedOrg(cAvidaContext& ctx, int loser);
 
+// -------- Neural networking support -------- @JJB
+public:
+  bool SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& msg);
+  bool SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& msg, int cell_id);
+
 // -------- Avatar support -------- @JJB
 private:
   struct sIO_avatar

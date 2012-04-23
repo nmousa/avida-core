@@ -1037,6 +1037,7 @@ bool cOrganism::SendMessage(cAvidaContext& ctx, cOrgMessage& msg)
     DoOutput(ctx, static_cast<int>(msg.GetData()));
   }
 
+  // Neural networking analysis, data recording
   if (m_world->GetConfig().NEURAL_NETWORKING.Get() && m_world->GetConfig().LOG_MESSAGE_TASKS.Get()) {
     int label = msg.GetLabel();
     int data = msg.GetData();
@@ -1046,10 +1047,16 @@ bool cOrganism::SendMessage(cAvidaContext& ctx, cOrgMessage& msg)
     msg.SetDataTaskID(data_task);
   }
 
-  // if we sent the message:
-  if (m_interface->SendMessage(msg)) {
-    MessageSent(ctx, msg);
-    return true;
+  if (m_world->GetConfig().NEURAL_NETWORKING.Get()) {
+    if (m_interface->SendNeuralMessage(ctx, msg)) {
+      MessageSent(ctx, msg);
+      return true;
+    }
+  } else {
+    if (m_interface->SendMessage(msg)) {
+      MessageSent(ctx, msg);
+      return true;
+    }
   }
   // importantly, m_interface->SendMessage() fails if we're running in the test CPU.
   return false;

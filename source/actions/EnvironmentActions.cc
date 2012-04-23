@@ -1139,7 +1139,7 @@ class cActionSetOptimizeMinMax : public cAction
 // allowing organism's to complete deme-IO in those cells. Does not support and there is not yet an event to turn cells "off"
 class cActionSetDemeIOGrid: public cAction
 {
-public:
+private:
   tArray<int> cell_list;
   cString inputOutput;
 
@@ -1163,23 +1163,31 @@ public:
     const int deme_size = m_world->GetConfig().WORLD_X.Get() * (m_world->GetConfig().WORLD_Y.Get() / num_demes);
     if (inputOutput == "Input") {
       int cell_id;
-      for (int i = 0; i < cell_list.GetSize(); i++) {
         for (int deme_id = 0; deme_id < num_demes; deme_id++) {
-          cell_id = cell_list[i] + deme_id * deme_size;
-          m_world->GetPopulation().GetCell(cell_id).SetCanInput(true);
+          m_world->GetPopulation().GetDeme(deme_id).SetInputCells(cell_list);
+          for (int i = 0; i < cell_list.GetSize(); i++) {
+            cell_id = m_world->GetPopulation().GetDeme(deme_id).GetAbsoluteCellID(cell_list[i]);
+            m_world->GetPopulation().GetCell(cell_id).SetCanInput(true);
+
         }
       }
     } else if (inputOutput == "Output") {
       int cell_id;
-      for (int i = 0; i < cell_list.GetSize(); i++) {
-        for (int deme_id = 0; deme_id < num_demes; deme_id++) {
-          cell_id = cell_list[i] + deme_id * deme_size;
+      for (int deme_id = 0; deme_id < num_demes; deme_id++) {
+        for (int i = 0; i < cell_list.GetSize(); i++) {
+          cell_id = m_world->GetPopulation().GetDeme(deme_id).GetAbsoluteCellID(cell_list[i]);
           m_world->GetPopulation().GetCell(cell_id).SetCanOutput(true);
         }
       }
     }
   }
 };
+
+//**
+//class cActionAddEnvironmentAV: public cAction
+//{
+//
+//}
 
 //**
 //class cActionSendOrgInterruptMessage : public cAction
@@ -1197,18 +1205,21 @@ public:
 //};
 
 //**
-//class cActionSendAvatarsInterruptMessage : public cAction
-//{
-//private:
-//  tArray<int> cell_list;
-//public:
-//  cActionSendAvatarsInterruptMessage(cWorld* world, const cString& args, Feedback&) :
-//    cAction(world, args)
-//  , cell_list(0)
-//  {
-//    cString largs(args);
-//  }
-//};
+class cActionSendAvatarsInterruptMessage : public cAction
+{
+public:
+  cActionSendAvatarsInterruptMessage(cWorld* world, const cString& args, Feedback&) : cAction(world, args) { ; }
+
+  static const cString GetDescription() { return "Arguments: none"; }
+
+  void Process(cAvidaContext& ctx)
+  {
+    const int num_demes = m_world->GetPopulation().GetNumDemes();
+    for (int deme_id = 0; deme_id < num_demes; deme_id++) {
+      m_world->GetPopulation().GetDeme(deme_id).SendInputsMessage(ctx);
+    }
+  }
+};
 
 class cActionDelayedDemeEvent : public cAction
 {
@@ -1459,8 +1470,9 @@ void RegisterEnvironmentActions(cActionLibrary* action_lib)
   action_lib->Register<cActionSetOptimizeMinMax>("SetOptimizeMinMax");
 
   action_lib->Register<cActionSetDemeIOGrid>("SetDemeIOGrid");
+  //action_lib->Register<cActionAddEnvironmentAV>("AddEnvironmentAV");
   //action_lib->Register<cActionSendOrgInterruptMessage>("SendOrgInterruptMessage");
-  //action_lib->Register<cActionSendAvatarsInterruptMessage>("SendAvatarsInterruptMessage");
+  action_lib->Register<cActionSendAvatarsInterruptMessage>("SendAvatarsInterruptMessage");
   
   // MIGRATION_MATRIX
   action_lib->Register<cActionSetMigrationMatrix>("SetMigrationMatrix");
