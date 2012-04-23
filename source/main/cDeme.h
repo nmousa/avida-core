@@ -407,7 +407,7 @@ public:
   void DoDemeInput(int value);
   void SetInputCells(tArray<int> input_cells) { m_input_cells = input_cells; }
   void SendInputsMessage(cAvidaContext& ctx);
-  void DoDemeOutput(cAvidaContext& ctx, int value);
+  int DoDemeOutput(cAvidaContext& ctx, int value);
   int CheckForTask(cAvidaContext& ctx, int value);
   double GetCurBonus() const { return m_cur_bonus; }
   void ResetMeritBonus() { m_cur_bonus = m_world->GetConfig().DEFAULT_BONUS.Get(); }

@@ -1269,6 +1269,11 @@ int cDeme::GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id)
     input = m_inputs[row % m_inputs.GetSize()];
     break;
           }
+  case 2: { // parallel input with environmental messaging
+    int row = deme_cell_id / GetWidth();
+    input = m_inputs[row % m_inputs.GetSize()];
+    break;
+          }
   default:
     {
     }
@@ -1300,8 +1305,10 @@ void cDeme::SendInputsMessage(cAvidaContext& ctx)
 }
 
 // Adds the value to the deme's output and checks if any tasks were completed
-void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
+int cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
 {
+  int task_completed = 0;
+
   // Add value to the output buffer
   m_output_buf.Add(value);
 
@@ -1334,7 +1341,7 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
   // No task completed, end here
   if (found == false) {
     result.Invalidate();
-    return;
+    return task_completed;
   }
 
   // If a task was completed, reset the inputs by clearing, and send a new stimulus to the inputs
@@ -1349,6 +1356,7 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
   for (int i = 0; i < num_tasks; i++) {
     if (result.TaskDone(i) == true) {
       m_task_count[i]++;
+      task_completed = i;
     }
   }
 
@@ -1384,6 +1392,7 @@ void cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
   }
 
   result.Invalidate();
+  return task_completed;
 }
 
 int cDeme::CheckForTask(cAvidaContext& ctx, int value)

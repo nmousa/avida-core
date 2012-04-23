@@ -1484,8 +1484,15 @@ bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& ms
 
   if (!dropped) {
     if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2 && m_world->GetPopulation().GetCell(cell_id).GetCanOutput()) {
-      GetDeme()->DoDemeOutput(ctx, msg.GetLabel());
-      GetDeme()->DoDemeOutput(ctx, msg.GetData());
+      int task1 = GetDeme()->DoDemeOutput(ctx, msg.GetLabel());
+      int task2 = GetDeme()->DoDemeOutput(ctx, msg.GetData());
+      if (m_world->GetConfig().DEMES_IO_FEEDBACK.Get()) {
+        if (task2 > task1) task1 = task2;
+        cDeme* deme = GetDeme();
+        for (int i = 0; i < deme->GetSize(); i++) {
+          m_world->GetPopulation().GetCell(deme->GetAbsoluteCellID(i)).SetCellData(task1);
+        }
+      }
     }
   }
 

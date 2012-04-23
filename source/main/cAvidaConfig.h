@@ -495,6 +495,7 @@ public:
   CONFIG_ADD_VAR(DEMES_MUT_ORGS_ON_REPLICATION, int, 0, "Mutate orgs using germline mutation rates when they are copied to a new deme (using DEMES_SEED_METHOD 1): 0=OFF, 1=ON");
   CONFIG_ADD_VAR(DEMES_ORGS_START_IN_GERM, int, 0, "Are orgs considered part of the germline at start?");
   CONFIG_ADD_VAR(DEMES_IO_HANDLING, int, 0, "How is deme IO to be handled?\n0: serial input/output(default)\n1: parallel input/serial output\n2: parallel input/serial output checked on avatar messaging");
+  CONFIG_ADD_VAR(DEMES_IO_FEEDBACK, int, 0, "Whether feedback is on/off for deme tasks, returning whether outputs are tasks are completed to the cell data");
   
   
   // -------- Reversion config options --------
