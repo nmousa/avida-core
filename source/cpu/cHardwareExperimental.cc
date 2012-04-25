@@ -1796,7 +1796,7 @@ bool cHardwareExperimental::Inst_PopTwo(cAvidaContext& ctx)
   int reg_used = FindModifiedRegister(rBX);
   for (int i = 0; i < 2; i++) {
     sInternalValue pop = stackPop();
-    SetInternalValue(reg_used, pop.value, pop);
+    setInternalValue(reg_used, pop.value, pop);
     reg_used++;
     if (reg_used == NUM_REGISTERS) reg_used = 0;
   }
