@@ -3418,73 +3418,79 @@ bool cHardwareExperimental::Inst_RotateAwayOrgID(cAvidaContext& ctx)
 // Rotate the register-value-selected avatar, left by one
 bool cHardwareExperimental::Inst_RotateNeuronAVLeft(cAvidaContext& ctx)
 {
-  //const int avatar_reg = FindModifiedRegister(rBX);
-  //int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  const int avatar_reg = FindModifiedRegister(rBX);
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
 
-  //avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 
-  //return m_organism->GetOrgInterface().RotateAV(-1, avatar_num);
-  return m_organism->GetOrgInterface().RotateAV(-1);
+  return m_organism->GetOrgInterface().RotateAV(-1, avatar_num);
+  //return m_organism->GetOrgInterface().RotateAV(-1);
 }
 
 // Rotate the register-value-selected avatar, right by one
 bool cHardwareExperimental::Inst_RotateNeuronAVRight(cAvidaContext& ctx)
 {
-  //const int avatar_reg = FindModifiedRegister(rBX);
-  //int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  const int avatar_reg = FindModifiedRegister(rBX);
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
 
-  //avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 
-  //return m_organism->GetOrgInterface().RotateAV(1, avatar_num);
-  return m_organism->GetOrgInterface().RotateAV(1);
+  return m_organism->GetOrgInterface().RotateAV(1, avatar_num);
+  //return m_organism->GetOrgInterface().RotateAV(1);
 }
 
 // Rotate the register-value-selected avatar, by the register set amount
 bool cHardwareExperimental::Inst_RotateNeuronAVbyX(cAvidaContext& ctx)
 {
-  //const int avatar_reg = FindModifiedRegister(rBX);
-  //const int rotate_reg = FindModifiedNextRegister(avatar_reg);
+  const int avatar_reg = FindModifiedRegister(rBX);
+  const int rotate_reg = FindModifiedNextRegister(avatar_reg);
 
-  //int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-  //const int rotate = m_threads[m_cur_thread].reg[rotate_reg].value;
-
-  //avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
-
-  //return m_organism->GetOrgInterface().RotateAV(rotate, avatar_num);
-  const int rotate_reg = FindModifiedRegister(rBX);
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
   const int rotate = m_threads[m_cur_thread].reg[rotate_reg].value;
-  return m_organism->GetOrgInterface().RotateAV(rotate);
+
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+
+  return m_organism->GetOrgInterface().RotateAV(rotate, avatar_num);
+  //const int rotate_reg = FindModifiedRegister(rBX);
+  //const int rotate = m_threads[m_cur_thread].reg[rotate_reg].value;
+  //return m_organism->GetOrgInterface().RotateAV(rotate);
 }
 
 // Move the register-value-selected avatar forward into its faced cell
 bool cHardwareExperimental::Inst_MoveNeuronAV(cAvidaContext& ctx)
 {
-  //const int avatar_reg = FindModifiedRegister(rBX);
-  //int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  const int avatar_reg = FindModifiedRegister(rBX);
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
 
-  //avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 
-  //return m_organism->GetOrgInterface().MoveAV(ctx, avatar_num);
-  return m_organism->GetOrgInterface().MoveAV(ctx);
+  return m_organism->GetOrgInterface().MoveAV(ctx, avatar_num);
+  //return m_organism->GetOrgInterface().MoveAV(ctx);
 }
 
 bool cHardwareExperimental::Inst_GetAVFacedDir(cAvidaContext& ctx)
 {
-  const int output_reg = FindModifiedRegister(rBX);
-  setInternalValue(output_reg, m_organism->GetOrgInterface().GetAVFacing(), true);
+  const int avatar_reg = FindModifiedRegister(rBX);
+  const int output_reg = FindModifiedNextRegister(avatar_reg);
+
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+
+  setInternalValue(output_reg, m_organism->GetOrgInterface().GetAVFacing(avatar_num), true);
+  //setInternalValue(output_reg, m_organism->GetOrgInterface().GetAVFacing(), true);
   return true;
 }
 
 // If the register-value-selected input avatar occupies a cell that also has an output avatar, execute next
 bool cHardwareExperimental::Inst_IfNeuronInputHasOutputAV(cAvidaContext& ctx)
 {
-  //const int avatar_reg = FindModifiedRegister(rBX);
-  //int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  const int avatar_reg = FindModifiedRegister(rBX);
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
 
-  //avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 
-  //if (!m_organism->GetOrgInterface().HasOutputAV(avatar_num)) {
-  if (!m_organism->GetOrgInterface().HasOutputAV()) {
+  if (!m_organism->GetOrgInterface().HasOutputAV(avatar_num)) {
+  //if (!m_organism->GetOrgInterface().HasOutputAV()) {
     getIP().Advance();
   }
   return true;
@@ -3493,13 +3499,13 @@ bool cHardwareExperimental::Inst_IfNeuronInputHasOutputAV(cAvidaContext& ctx)
 // If the register-value-selected input avatar does not occupy a cell that has an output avatar, execute next
 bool cHardwareExperimental::Inst_IfNotNeuronInputHasOutputAV(cAvidaContext& ctx)
 {
-  //const int avatar_reg = FindModifiedRegister(rBX);
-  //int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  const int avatar_reg = FindModifiedRegister(rBX);
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
 
-  //avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 
-  //if (m_organism->GetOrgInterface().HasOutputAV(avatar_num)) {
-  if (m_organism->GetOrgInterface().HasOutputAV()) {
+  if (m_organism->GetOrgInterface().HasOutputAV(avatar_num)) {
+  //if (m_organism->GetOrgInterface().HasOutputAV()) {
     getIP().Advance();
   }
   return true;
@@ -3508,13 +3514,13 @@ bool cHardwareExperimental::Inst_IfNotNeuronInputHasOutputAV(cAvidaContext& ctx)
 // If the register-value-selected input avatar is facing a cell with an output avatar, execute next
 bool cHardwareExperimental::Inst_IfNeuronInputFacedHasOutputAV(cAvidaContext& ctx)
 {
-  //const int avatar_reg = FindModifiedRegister(rBX);
-  //int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  const int avatar_reg = FindModifiedRegister(rBX);
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
 
-  //avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 
-  //if (!m_organism->GetOrgInterface().FacedHasOutputAV(avatar_num)) {
-  if (!m_organism->GetOrgInterface().FacedHasOutputAV()) {
+  if (!m_organism->GetOrgInterface().FacedHasOutputAV(avatar_num)) {
+  //if (!m_organism->GetOrgInterface().FacedHasOutputAV()) {
     getIP().Advance();
   }
   return true;
@@ -3523,13 +3529,13 @@ bool cHardwareExperimental::Inst_IfNeuronInputFacedHasOutputAV(cAvidaContext& ct
 // If the register-value-selected input avatar is facing a cell without an output avatar, execute next
 bool cHardwareExperimental::Inst_IfNotNeuronInputFacedHasOutputAV(cAvidaContext& ctx)
 {
-  //const int avatar_reg = FindModifiedRegister(rBX);
-  //int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  const int avatar_reg = FindModifiedRegister(rBX);
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
 
-  //avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 
-  //if (m_organism->GetOrgInterface().FacedHasOutputAV(avatar_num)) {
-  if (m_organism->GetOrgInterface().FacedHasOutputAV()) {
+  if (m_organism->GetOrgInterface().FacedHasOutputAV(avatar_num)) {
+  //if (m_organism->GetOrgInterface().FacedHasOutputAV()) {
     getIP().Advance();
   }
   return true;
