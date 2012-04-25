@@ -1793,7 +1793,7 @@ bool cHardwareExperimental::Inst_PushAll(cAvidaContext& ctx)
 
 bool cHardwareExperimental::Inst_PopTwo(cAvidaContext& ctx)
 {
-  const int reg_used = FindModifiedRegister(rBX);
+  int reg_used = FindModifiedRegister(rBX);
   for (int i = 0; i < 2; i++) {
     sInternalValue pop = stackPop();
     SetInternalValue(reg_used, pop.value, pop);
@@ -1805,7 +1805,7 @@ bool cHardwareExperimental::Inst_PopTwo(cAvidaContext& ctx)
 
 bool cHardwareExperimental::Inst_PushTwo(cAvidaContext& ctx)
 {
-  const int reg_used = FindModifiedRegister(rBX);
+  int reg_used = FindModifiedRegister(rBX);
   for (int i = 0; i < 2; i++) {
     getStack(m_threads[m_cur_thread].cur_stack).Push(m_threads[m_cur_thread].reg[reg_used]);
     reg_used++;
