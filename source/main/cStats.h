@@ -1112,7 +1112,7 @@ public:
 
 private:
   std::vector<double> m_deme_fitness; //!< Fitness of each deme during last deme competition.
-  std::vector<double> m_last_deme_fitness; //@JJB**
+  std::vector<double> m_last_deme_fitness;
 
 	// -------- Cell data support --------
 public:

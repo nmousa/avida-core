@@ -4003,10 +4003,15 @@ void cStats::PrintMaxFitnessGermlines(const cString& filename)
     df.Write(highest_fitness, "Deme fitness [fitness]");
     df.Write(genotype_id, "Genome ID [genomeid]");
     df.Write(genome, "Genome sequence [genome]");
+
     const int num_tasks = m_world->GetEnvironment().GetNumTasks();
     for (int task_id = 0; task_id < num_tasks; task_id++) {
       df.Write(deme.GetTaskCount()[task_id], task_names[task_id]);
     }
+
+    df.Write(deme.GetMessageSuccessfullySent(), "Messages successfully send [success]");
+    df.Write(deme.GetMessageDropped(), "Messages dropped [dropped]");
+    df.Write(deme.GetMessageSendFailed(), "Failed messages (no recipient) [failed]");
 
     df.Endl();
   }
