@@ -3312,25 +3312,57 @@ public:
 
   ~cActionCompeteDemesByMerit() {}
 
-  static const cString GetDescription() { return "Compete demes according to the each deme's current merit"; }
+  static const cString GetDescription() { return "Compete demes according to each deme's current merit"; }
 
   virtual double Fitness(cDeme& deme, cAvidaContext& ctx)
   {
     deme.UpdateCurMerit();
-    double messaging_bonus;
-    double input_bonus;
-    double output_bonus;
 
-    //if (deme.GetMessageSuccessfullySent() > 0) messaging_bonus = 1.5;
-    //else messaging_bonus = 1.0;
+    double fitness = deme.GetCurMerit().GetDouble();
+    return fitness;
+  }
+};
 
-    //if (deme.HasDoneInput()) input_bonus = 1.5;
-    //else input_bonus = 1.0;
+//**
+class cActionCompeteDemesByMeritUnsuccessfulMessages : public cAbstractCompeteDemes
+{
+public:
+  cActionCompeteDemesByMeritUnsuccessfulMessages(cWorld* world, const cString& args, Feedback& feedback) : cAbstractCompeteDemes(world, args, feedback)
+  {
+  }
 
-    //if (deme.HasDoneOutput()) output_bonus = 1.5;
-    //else output_bonus = 1.0;
+  ~cActionCompeteDemesByMeritUnsuccessfulMessages() {}
 
-    double fitness = deme.GetCurMerit().GetDouble();// * messaging_bonus * input_bonus * output_bonus;
+  static const cString GetDescription() { return "Compete demes according to each deme's current merit and the number of unsuccessful messages"; }
+
+  virtual double Fitness(cDeme& deme, cAvidaContext& ctx)
+  {
+    deme.UpdateCurMerit();
+    double merit = deme.GetCurMerit().GetDouble();
+    int unsuccessful_msg = deme.GetMessageSendFailed();
+    double fitness = merit * 100.0 / double(unsuccessful_msg);
+    return fitness;
+  }
+};
+
+//**
+class cActionCompeteDemesByMeritMessaging : public cAbstractCompeteDemes
+{
+public:
+  cActionCompeteDemesByMeritMessaging(cWorld* world, const cString& args, Feedback& feedback) : cAbstractCompeteDemes(world, args, feedback)
+  {
+  }
+
+  ~cActionCompeteDemesByMeritMessaging() {}
+
+  static const cString GetDescription() { return "Compete demes according to each deme's current merit and the reducing the total number of messages"; }
+
+  virtual double Fitness(cDeme& deme, cAvidaContext& ctx)
+  {
+    deme.UpdateCurMerit();
+    double merit = deme.GetCurMerit().GetDouble();
+    int total_msg = deme.GetMessageSendFailed() + deme.GetMessageSuccessfullySent();
+    double fitness = merit * 100.0 / double(total_msg);
     return fitness;
   }
 };
@@ -5572,12 +5604,14 @@ void RegisterPopulationActions(cActionLibrary* action_lib)
   action_lib->Register<cActionConnectCells>("ConnectCells");
   action_lib->Register<cActionDisconnectCells>("DisconnectCells");
   action_lib->Register<cActionSwapCells>("SwapCells");
-	
+
   action_lib->Register<cActionCompeteDemesByTaskCount>("CompeteDemesByTaskCount");
   action_lib->Register<cActionCompeteDemesByTaskCountAndEfficiency>("CompeteDemesByTaskCountAndEfficiency");
   action_lib->Register<cActionCompeteDemesByEnergyDistribution>("CompeteDemesByEnergyDistribution");
   action_lib->Register<cActionCompeteDemesByMerit>("CompeteDemesByMerit");
-	
+  action_lib->Register<cActionCompeteDemesByMeritUnsuccessfulMessages>("CompeteDemesByMeritUnsuccessfulMessages");
+  action_lib->Register<cActionCompeteDemesByMeritMessaging>("CompeteDemesByMeritMessaging");
+
   /* deme predicate*/
   action_lib->Register<cActionPred_DemeEventMoveCenter>("Pred_DemeEventMoveCenter");
   action_lib->Register<cActionPred_DemeEventMoveBetweenTargets>("Pred_DemeEventMoveBetweenTargets");
