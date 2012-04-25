@@ -420,6 +420,8 @@ private:
   bool Inst_Push(cAvidaContext& ctx);
   bool Inst_PopAll(cAvidaContext& ctx);
   bool Inst_PushAll(cAvidaContext& ctx);
+  bool Inst_PopTwo(cAvidaContext& ctx);
+  bool Inst_PushTwo(cAvidaContext& ctx);
   bool Inst_SwitchStack(cAvidaContext& ctx);
   bool Inst_SwapStackTop(cAvidaContext& ctx);
   bool Inst_Swap(cAvidaContext& ctx);

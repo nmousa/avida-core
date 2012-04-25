@@ -150,6 +150,8 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("push", &cHardwareExperimental::Inst_Push, 0, "Copy number from ?BX? and place it into the stack"),
     tInstLibEntry<tMethod>("pop-all", &cHardwareExperimental::Inst_PopAll, 0, "Remove top numbers from stack and place into ?BX?"),
     tInstLibEntry<tMethod>("push-all", &cHardwareExperimental::Inst_PushAll, 0, "Copy number from all registers and place into the stack"),
+    tInstLibEntry<tMethod>("pop-two", &cHardwareExperimental::Inst_PopTwo, 0, "Remove top two numbers from stack and place into ?BX?"),
+    tInstLibEntry<tMethod>("push-two", &cHardwareExperimental::Inst_PushTwo, 0, "Copy two numbers from registers and place into the stack"),
     tInstLibEntry<tMethod>("swap-stk", &cHardwareExperimental::Inst_SwitchStack, 0, "Toggle which stack is currently being used"),
     tInstLibEntry<tMethod>("swap-stk-top", &cHardwareExperimental::Inst_SwapStackTop, 0, "Swap the values at the top of both stacks"),
     tInstLibEntry<tMethod>("swap", &cHardwareExperimental::Inst_Swap, 0, "Swap the contents of ?BX? with ?CX?"),
@@ -1782,6 +1784,29 @@ bool cHardwareExperimental::Inst_PushAll(cAvidaContext& ctx)
 {
   int reg_used = FindModifiedRegister(rBX);
   for (int i = 0; i < NUM_REGISTERS; i++) {
+    getStack(m_threads[m_cur_thread].cur_stack).Push(m_threads[m_cur_thread].reg[reg_used]);
+    reg_used++;
+    if (reg_used == NUM_REGISTERS) reg_used = 0;
+  }
+  return true;
+}
+
+bool cHardwareExperimental::Inst_PopTwo(cAvidaContext& ctx)
+{
+  const int reg_used = FindModifiedRegister(rBX);
+  for (int i = 0; i < 2; i++) {
+    sInternalValue pop = stackPop();
+    SetInternalValue(reg_used, pop.value, pop);
+    reg_used++;
+    if (reg_used == NUM_REGISTERS) reg_used = 0;
+  }
+  return true;
+}
+
+bool cHardwareExperimental::Inst_PushTwo(cAvidaContext& ctx)
+{
+  const int reg_used = FindModifiedRegister(rBX);
+  for (int i = 0; i < 2; i++) {
     getStack(m_threads[m_cur_thread].cur_stack).Push(m_threads[m_cur_thread].reg[reg_used]);
     reg_used++;
     if (reg_used == NUM_REGISTERS) reg_used = 0;
