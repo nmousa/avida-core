@@ -3321,16 +3321,16 @@ public:
     double input_bonus;
     double output_bonus;
 
-    if (deme.GetMessageSuccessfullySent() > 0) messaging_bonus = 1.5;
-    else messaging_bonus = 1.0;
+    //if (deme.GetMessageSuccessfullySent() > 0) messaging_bonus = 1.5;
+    //else messaging_bonus = 1.0;
 
-    if (deme.HasDoneInput()) input_bonus = 1.5;
-    else input_bonus = 1.0;
+    //if (deme.HasDoneInput()) input_bonus = 1.5;
+    //else input_bonus = 1.0;
 
-    if (deme.HasDoneOutput()) output_bonus = 1.5;
-    else output_bonus = 1.0;
+    //if (deme.HasDoneOutput()) output_bonus = 1.5;
+    //else output_bonus = 1.0;
 
-    double fitness = deme.GetCurMerit().GetDouble() * messaging_bonus * input_bonus * output_bonus;
+    double fitness = deme.GetCurMerit().GetDouble();// * messaging_bonus * input_bonus * output_bonus;
     return fitness;
   }
 };

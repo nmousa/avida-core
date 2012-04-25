@@ -1274,6 +1274,11 @@ int cDeme::GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id)
     input = m_inputs[row % m_inputs.GetSize()];
     break;
           }
+  case 3: { // serial input using a single message
+    m_input_pointer %= m_inputs.GetSize();
+    input = m_inputs[m_input_pointer++];
+    break;
+          }
   default:
     {
     }
@@ -1294,12 +1299,27 @@ void cDeme::SendInputsMessage(cAvidaContext& ctx)
   for (int i = 0; i < m_input_cells.GetSize(); i++) {
     int deme_cell_id = m_input_cells[i];
     cPopulationCell& cell = m_world->GetPopulation().GetCell(GetAbsoluteCellID(deme_cell_id));
-    int input_value = GetNextDemeInput(ctx, deme_cell_id);
-    cOrgMessage msg = cOrgMessage();
-    msg.SetLabel(input_value);
-    if (cell.GetNumAVInputs()) DoDemeInput(input_value);
-    for (int i = 0; i < cell.GetNumAVInputs(); i++) {
-      cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
+    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 3) {
+      int input_value1 = GetNextDemeInput(ctx, deme_cell_id);
+      int input_value2 = GetNextDemeInput(ctx, deme_cell_id);
+      cOrgMessage msg = cOrgMessage();
+      msg.SetLabel(input_value1);
+      msg.SetData(input_value2);
+      if (cell.GetNumAVInputs()) {
+        DoDemeInput(input_value1);
+        DoDemeInput(input_value2);
+      }
+      for (int i = 0; i < cell.GetNumAVInputs(); i++) {
+        cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
+      }
+    } else {
+      int input_value = GetNextDemeInput(ctx, deme_cell_id);
+      cOrgMessage msg = cOrgMessage();
+      msg.SetLabel(input_value);
+      if (cell.GetNumAVInputs()) DoDemeInput(input_value);
+      for (int i = 0; i < cell.GetNumAVInputs(); i++) {
+        cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
+      }
     }
   }
 }
