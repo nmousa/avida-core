@@ -3226,7 +3226,7 @@ bool cHardwareExperimental::Inst_GetAVCellPositionX(cAvidaContext& ctx)
 bool cHardwareExperimental::Inst_GetAVCellPositionY(cAvidaContext& ctx)
 {
   const int avatar_reg = FindModifiedRegister(rBX);
-  const int xreg = FindModifiedNextRegister(avatar_reg);
+  const int yreg = FindModifiedNextRegister(avatar_reg);
 
   int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
   avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
