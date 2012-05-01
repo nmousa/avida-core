@@ -441,6 +441,9 @@ private:
   bool Inst_Div(cAvidaContext& ctx);
   bool Inst_Mod(cAvidaContext& ctx);
   bool Inst_Nand(cAvidaContext& ctx);
+  bool Inst_Not(cAvidaContext& ctx);
+  bool Inst_Or(cAvidaContext& ctx);
+  bool Inst_And(cAvidaContext& ctx);
 
   // I/O and Sensory
   bool Inst_TaskIO(cAvidaContext& ctx);
@@ -532,6 +535,9 @@ private:
   bool Inst_ZeroEasterly(cAvidaContext& ctx);
   bool Inst_ZeroNortherly(cAvidaContext& ctx);
   bool Inst_ZeroPosOffset(cAvidaContext& ctx);
+  bool Inst_GetAVCellPosition(cAvidaContext& ctx);
+  bool Inst_GetAVCellPositionX(cAvidaContext& ctx);
+  bool Inst_GetAVCellPositionY(cAvidaContext& ctx);
   
   // Rotation
   bool Inst_RotateLeftOne(cAvidaContext& ctx);
@@ -581,16 +587,16 @@ private:
 
   // Groups 
   bool Inst_JoinGroup(cAvidaContext& ctx);
-  bool Inst_ChangePredGroup(cAvidaContext& ctx); // @JJB
-  bool Inst_MakePredGroup(cAvidaContext& ctx); // @JJB
-  bool Inst_LeavePredGroup(cAvidaContext& ctx); // @JJB
-  bool Inst_AdoptPredGroup(cAvidaContext& ctx); // @JJB
+  bool Inst_ChangePredGroup(cAvidaContext& ctx);
+  bool Inst_MakePredGroup(cAvidaContext& ctx);
+  bool Inst_LeavePredGroup(cAvidaContext& ctx);
+  bool Inst_AdoptPredGroup(cAvidaContext& ctx);
   bool Inst_GetGroupID(cAvidaContext& ctx);
   bool Inst_GetPredGroupID(cAvidaContext& ctx);
-  bool Inst_IncPredTolerance(cAvidaContext& ctx);  // @JJB
-  bool Inst_DecPredTolerance(cAvidaContext& ctx);  // @JJB
-  bool Inst_GetPredTolerance(cAvidaContext& ctx);  // @JJB    
-  bool Inst_GetPredGroupTolerance(cAvidaContext& ctx);  // @JJB
+  bool Inst_IncPredTolerance(cAvidaContext& ctx);
+  bool Inst_DecPredTolerance(cAvidaContext& ctx);
+  bool Inst_GetPredTolerance(cAvidaContext& ctx);    
+  bool Inst_GetPredGroupTolerance(cAvidaContext& ctx);
 
   // Active messaging
   bool Inst_SendMessageInterruptType0(cAvidaContext& ctx);

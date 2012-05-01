@@ -3318,7 +3318,14 @@ public:
   {
     deme.UpdateCurMerit();
 
-    double fitness = deme.GetCurMerit().GetDouble();
+    int messaging_bonus = 1.0;
+    int input_bonus = 1.0;
+    int output_bonus = 1.0;
+    if (deme.GetMessageSuccessfullySent() > 0) messaging_bonus = 2.0;
+    if (deme.HasDoneInput()) input_bonus = 2.0;
+    if (deme.HasDoneOutput()) output_bonus = 2.0;
+
+    double fitness = deme.GetCurMerit().GetDouble() * messaging_bonus * input_bonus * output_bonus;
     return fitness;
   }
 };

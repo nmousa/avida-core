@@ -218,6 +218,8 @@ public:
   virtual int GetAVFacedDataOrgID(int av_num = 0) = 0;
   virtual int GetAVFacedDataUpdate(int av_num = 0) = 0;
   virtual int GetAVFacedDataTerritory(int av_num = 0) = 0;
+  virtual int GetAVCellXPosition(int av_num = 0) = 0;
+  virtual int GetAVCellYPosition(int av_num = 0) = 0;
   virtual int FindAV(bool input, bool output, int av_num = 0) = 0;
   virtual void SetAVCellIndex(int av_index, int av_num = 0) = 0;
   virtual void SetAVFacing(int av_facing, int av_num = 0) = 0;

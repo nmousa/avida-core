@@ -166,6 +166,9 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("add", &cHardwareExperimental::Inst_Add, 0, "Add BX to CX and place the result in ?BX?"),
     tInstLibEntry<tMethod>("sub", &cHardwareExperimental::Inst_Sub, 0, "Subtract CX from BX and place the result in ?BX?"),
     tInstLibEntry<tMethod>("nand", &cHardwareExperimental::Inst_Nand, 0, "Nand BX by CX and place the result in ?BX?"),
+    tInstLibEntry<tMethod>("not", &cHardwareExperimental::Inst_Not, 0, "Not ?BX?"),
+    tInstLibEntry<tMethod>("or", &cHardwareExperimental::Inst_Or, 0, "Or BX by CX and place the result in ?BX?"),
+    tInstLibEntry<tMethod>("and", &cHardwareExperimental::Inst_And, 0, "And BX by CX and place the result in ?BX?"),
     
     tInstLibEntry<tMethod>("IO", &cHardwareExperimental::Inst_TaskIO, nInstFlag::STALL, "Output ?BX?, and input new number back into ?BX?"),
     tInstLibEntry<tMethod>("IO-expire", &cHardwareExperimental::Inst_TaskIOExpire, nInstFlag::STALL, "Output ?BX?, and input new number back into ?BX?, if the number has not yet expired"),
@@ -261,13 +264,16 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("get-cell-xy", &cHardwareExperimental::Inst_GetCellPosition),
     tInstLibEntry<tMethod>("get-cell-x", &cHardwareExperimental::Inst_GetCellPositionX),
     tInstLibEntry<tMethod>("get-cell-y", &cHardwareExperimental::Inst_GetCellPositionY),
-    tInstLibEntry<tMethod>("get-north-offset", &cHardwareExperimental::Inst_GetNorthOffset),    
-    tInstLibEntry<tMethod>("get-position-offset", &cHardwareExperimental::Inst_GetPositionOffset),    
-    tInstLibEntry<tMethod>("get-northerly", &cHardwareExperimental::Inst_GetNortherly),    
-    tInstLibEntry<tMethod>("get-easterly", &cHardwareExperimental::Inst_GetEasterly), 
-    tInstLibEntry<tMethod>("zero-easterly", &cHardwareExperimental::Inst_ZeroEasterly),    
-    tInstLibEntry<tMethod>("zero-northerly", &cHardwareExperimental::Inst_ZeroNortherly),  
-    tInstLibEntry<tMethod>("zero-position-offset", &cHardwareExperimental::Inst_ZeroPosOffset),  
+    tInstLibEntry<tMethod>("get-north-offset", &cHardwareExperimental::Inst_GetNorthOffset),
+    tInstLibEntry<tMethod>("get-position-offset", &cHardwareExperimental::Inst_GetPositionOffset),
+    tInstLibEntry<tMethod>("get-northerly", &cHardwareExperimental::Inst_GetNortherly),
+    tInstLibEntry<tMethod>("get-easterly", &cHardwareExperimental::Inst_GetEasterly),
+    tInstLibEntry<tMethod>("zero-easterly", &cHardwareExperimental::Inst_ZeroEasterly),
+    tInstLibEntry<tMethod>("zero-northerly", &cHardwareExperimental::Inst_ZeroNortherly),
+    tInstLibEntry<tMethod>("zero-position-offset", &cHardwareExperimental::Inst_ZeroPosOffset),
+    tInstLibEntry<tMethod>("get-av-cell-xy", &cHardwareExperimental::Inst_GetAVCellPosition),
+    tInstLibEntry<tMethod>("get-av-cell-x", &cHardwareExperimental::Inst_GetAVCellPositionX),
+    tInstLibEntry<tMethod>("get-av-cell-y", &cHardwareExperimental::Inst_GetAVCellPositionY),
     
     // Rotation
     tInstLibEntry<tMethod>("rotate-left-one", &cHardwareExperimental::Inst_RotateLeftOne, nInstFlag::STALL),
@@ -1961,6 +1967,37 @@ bool cHardwareExperimental::Inst_Nand(cAvidaContext& ctx)
   return true;
 }
 
+bool cHardwareExperimental::Inst_Not(cAvidaContext& ctx)
+{
+  const int src = FindModifiedRegister(rBX);
+  const int dst = src;
+  sInternalValue& r1 = m_threads[m_cur_thread].reg[src];
+  setInternalValue(dst, ~(r1.value), src);
+  return true;
+}
+
+bool cHardwareExperimental::Inst_Or(cAvidaContext& ctx)
+{
+  const int dst = FindModifiedRegister(rBX);
+  const int op1 = FindModifiedRegister(dst);
+  const int op2 = FindModifiedNextRegister(op1);
+  sInternalValue& r1 = m_threads[m_cur_thread].reg[op1];
+  sInternalValue& r2 = m_threads[m_cur_thread].reg[op2];
+  setInternalValue(dst, r1.value | r2.value, r1, r2);
+  return true;
+}
+
+bool cHardwareExperimental::Inst_And(cAvidaContext& ctx)
+{
+  const int dst = FindModifiedRegister(rBX);
+  const int op1 = FindModifiedRegister(dst);
+  const int op2 = FindModifiedNextRegister(op1);
+  sInternalValue& r1 = m_threads[m_cur_thread].reg[op1];
+  sInternalValue& r2 = m_threads[m_cur_thread].reg[op2];
+  setInternalValue(dst, r1.value & r2.value, r1, r2);
+  return true;
+}
+
 bool cHardwareExperimental::Inst_HeadAlloc(cAvidaContext& ctx)   // Allocate maximal more
 {
   const int dst = FindModifiedRegister(rAX);
@@ -3148,6 +3185,57 @@ bool cHardwareExperimental::Inst_ZeroPosOffset(cAvidaContext& ctx) {
   }
   else if (offset == 1) m_organism->ClearEasterly();
   else if (offset == 2) m_organism->ClearNortherly();
+  return true;
+}
+
+bool cHardwareExperimental::Inst_GetAVCellPosition(cAvidaContext& ctx)
+{
+  const int avatar_reg = FindModifiedRegister(rBX);
+  const int xreg = FindModifiedNextRegister(avatar_reg);
+  const int yreg = FindModifiedNextRegister(xreg);
+
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+
+  int x = m_organism->GetOrgInterface().GetAVCellXPosition(avatar_num);
+  int y = m_organism->GetOrgInterface().GetAVCellYPosition(avatar_num);
+  // Fail if we're running in the test CPU
+  if (x == -1 || y == -1) return false;
+
+  setInternalValue(xreg, x, true);
+  setInternalValue(yreg, y, true);
+  return true;
+}
+
+bool cHardwareExperimental::Inst_GetAVCellPositionX(cAvidaContext& ctx)
+{
+  const int avatar_reg = FindModifiedRegister(rBX);
+  const int xreg = FindModifiedNextRegister(avatar_reg);
+
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+
+  int x = m_organism->GetOrgInterface().GetAVCellXPosition(avatar_num);
+  // Fail if we're running in the test CPU
+  if (x == -1) return false;
+
+  setInternalValue(xreg, x, true);
+  return true;
+}
+
+bool cHardwareExperimental::Inst_GetAVCellPositionY(cAvidaContext& ctx)
+{
+  const int avatar_reg = FindModifiedRegister(rBX);
+  const int xreg = FindModifiedNextRegister(avatar_reg);
+
+  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+
+  int y = m_organism->GetOrgInterface().GetAVCellYPosition(avatar_num);
+  // Fail if we're running in the test CPU
+  if (y == -1) return false;
+
+  setInternalValue(yreg, y, true);
   return true;
 }
 

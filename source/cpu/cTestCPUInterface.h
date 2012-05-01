@@ -216,6 +216,8 @@ public:
   int GetAVFacedDataOrgID(int av_num = 0) { return -1; }
   int GetAVFacedDataUpdate(int av_num = 0) { return -1; }
   int GetAVFacedDataTerritory(int av_num = 0) { return -1; }
+  int GetAVCellXPosition(int av_num = 0) { return -1; }
+  int GetAVCellYPosition(int av_num = 0) { return -1; }
   int FindAV(bool input, bool output, int av_num = 0) { return -1; }
   void SetAVCellIndex(int av_index, int av_num = 0) { ; }
   void SetAVFacing(int av_facing, int av_num = 0) { ; }

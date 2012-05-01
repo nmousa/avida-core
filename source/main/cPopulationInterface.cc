@@ -1796,6 +1796,28 @@ int cPopulationInterface::GetAVFacedDataTerritory(int av_num)
   return -1;
 }
 
+// Returns the avatar's deme x-coordinate position
+int cPopulationInterface::GetAVCellXPosition(int av_num)
+{
+  // If the avatar exists..
+  if (av_num < GetNumAV()) {
+    std::pair<int, int> position = m_world->GetPopulation().GetDeme(m_deme_id).GetCellPosition(m_avatars[av_num].av_cell_id);
+    return position.first;
+  }
+  return -1;
+}
+
+// Returns the avatar's deme y-coordinate position
+int cPopulationInterface::GetAVCellYPosition(int av_num)
+{
+  // If the avatar exists..
+  if (av_num < GetNumAV()) {
+    std::pair<int, int> position = m_world->GetPopulation().GetDeme(m_deme_id).GetCellPosition(m_avatars[av_num].av_cell_id);
+    return position.second;
+  }
+  return -1;
+}
+
 // Finds the index of the next avatar which matches input/output specifications
 int cPopulationInterface::FindAV(bool input, bool output, int av_num)
 {
