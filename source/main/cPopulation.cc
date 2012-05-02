@@ -5466,9 +5466,10 @@ void cPopulation::Inject(const Genome& genome, eBioUnitSource src, cAvidaContext
   }
   
   // We can't inject into the boundary of the world:
-  if(m_world->IsWorldBoundary(GetCell(cell_id))) {
+  if (m_world->IsWorldBoundary(GetCell(cell_id))) {
     cell_id += m_world->GetConfig().WORLD_X.Get()+1;
   }
+
   // Can't inject onto deadly world edges either
   if (m_world->GetConfig().DEADLY_BOUNDARIES.Get() == 1) {
     const int dest_x = cell_id % m_world->GetConfig().WORLD_X.Get();  
@@ -5480,7 +5481,7 @@ void cPopulation::Inject(const Genome& genome, eBioUnitSource src, cAvidaContext
   }
   
   // if the injected org already has a group we will assign it to, do not assign group id in activate organism
-  if(!inject_group) InjectGenome(cell_id, src, genome, ctx, lineage_label, true);
+  if (!inject_group) InjectGenome(cell_id, src, genome, ctx, lineage_label, true);
   else InjectGenome(cell_id, src, genome, ctx, lineage_label, false);
   
   cPhenotype& phenotype = GetCell(cell_id).GetOrganism()->GetPhenotype();
@@ -5491,9 +5492,9 @@ void cPopulation::Inject(const Genome& genome, eBioUnitSource src, cAvidaContext
   
   cell_array[cell_id].GetOrganism()->SetLineageLabel(lineage_label);
   
-	// the following bit of code is required for proper germline support.
-	// even if there's only one deme!!
-	if(m_world->GetConfig().DEMES_USE_GERMLINE.Get()) {
+  // the following bit of code is required for proper germline support.
+  // even if there's only one deme!!
+  if (m_world->GetConfig().DEMES_USE_GERMLINE.Get()) {
     cDeme& deme = deme_array[GetCell(cell_id).GetDemeID()];
     
     // If we're using germlines, then we have to be a little careful here.
@@ -5508,28 +5509,23 @@ void cPopulation::Inject(const Genome& genome, eBioUnitSource src, cAvidaContext
           deme.GetGermline().Add(GetCell(cell_id).GetOrganism()->GetGenome());
         }
       }
-    }
-    else if (m_world->GetConfig().DEMES_SEED_METHOD.Get() == 1) {
+    } else if (m_world->GetConfig().DEMES_SEED_METHOD.Get() == 1) {
       if (m_world->GetConfig().DEMES_USE_GERMLINE.Get() == 2) {
         //find the genotype we just created from the genome, and save it
         deme.ReplaceGermline(GetCell(cell_id).GetOrganism()->GetBioGroup("genotype"));
-      }
-      else { // not germlines, save org as founder
+      } else { // not germlines, save org as founder
         deme.AddFounder(GetCell(cell_id).GetOrganism()->GetBioGroup("genotype"), &phenotype);
       }
       
       GetCell(cell_id).GetOrganism()->GetPhenotype().SetPermanentGermlinePropensity
       (m_world->GetConfig().DEMES_FOUNDER_GERMLINE_PROPENSITY.Get());
       
-      
       if (m_world->GetConfig().DEMES_FOUNDER_GERMLINE_PROPENSITY.Get() >= 0.0) {
         GetCell(cell_id).GetOrganism()->GetPhenotype().SetPermanentGermlinePropensity
         ( m_world->GetConfig().DEMES_FOUNDER_GERMLINE_PROPENSITY.Get() );
       }
-      
     }
-  }
-  else if (m_world->GetConfig().DEMES_USE_GERMLINE.Get() == 2) {
+  } else if (m_world->GetConfig().DEMES_USE_GERMLINE.Get() == 2) {
     //find the genotype we just created from the genome, and save it
     cDeme& deme = deme_array[GetCell(cell_id).GetDemeID()];
     cDemePlaceholderUnit unit(src, genome);
@@ -5538,7 +5534,7 @@ void cPopulation::Inject(const Genome& genome, eBioUnitSource src, cAvidaContext
     genotype->RemoveBioUnit(&unit);
   }
   
-  if(inject_group) {
+  if (inject_group) {
     cell_array[cell_id].GetOrganism()->SetOpinion(group_id);
     cell_array[cell_id].GetOrganism()->JoinGroup(group_id);
     cell_array[cell_id].GetOrganism()->SetForageTarget(forager_type);  
@@ -5547,7 +5543,7 @@ void cPopulation::Inject(const Genome& genome, eBioUnitSource src, cAvidaContext
     cell_array[cell_id].GetOrganism()->GetPhenotype().SetBirthGroupID(group_id);
     cell_array[cell_id].GetOrganism()->GetPhenotype().SetBirthForagerType(forager_type);
   }
-  if(m_world->GetConfig().USE_AVATARS.Get() && !m_world->GetConfig().NEURAL_NETWORKING.Get()) {
+  if (m_world->GetConfig().USE_AVATARS.Get() && !m_world->GetConfig().NEURAL_NETWORKING.Get()) {
     cell_array[cell_id].GetOrganism()->GetOrgInterface().AddPredPreyAV(cell_id);
   }
   if (trace) SetupMiniTrace(ctx, cell_array[cell_id].GetOrganism());    
