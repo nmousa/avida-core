@@ -2410,7 +2410,7 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
           DemePostInjection(target_deme, cell_array[cellid]);
         }
       }
-    } else /* if (m_world->GetConfig().DEMES_SEED_METHOD.Get() != 0) */{
+    } else {
       
       // @JEB
       // Updated seed deme method that maintains genotype inheritance.
@@ -2653,38 +2653,16 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
       
       // We'd better have at *least* one genome.
       // Methods that require a germline can sometimes come up short...
-      //assert(source_founders.GetSize()>0);
-      //assert(target_founders.GetSize()>0);
       if (source_founders.GetSize() == 0) {
         return false;
       }
-      
-      // We clear the deme, but trick cPopulation::KillOrganism
-      // to NOT delete the organisms, by pretending
-      // the orgs are running. This way we can still create
-      // clones of them that will track stats correctly.
-      // We also need to defer adjusting the genotype
-      // or it will be prematurely deleted before we are done!
-      
-      // cDoubleSum gen;
-      tArray<cOrganism*> old_source_organisms;
-      for(int i = 0; i < source_deme.GetSize(); ++i) {
-        int cell_id = source_deme.GetCellID(i);
-        
-        if (cell_array[cell_id].IsOccupied()) {
-          cOrganism* org = cell_array[cell_id].GetOrganism();
-          old_source_organisms.Push(org);
-          org->SetRunning(true);
-        }
-      }
-      
-      
+
       tArray<cOrganism*> old_target_organisms;
-      for(int i=0; i<target_deme.GetSize(); ++i) {
+      for (int i = 0; i < target_deme.GetSize(); i++) {
         int cell_id = target_deme.GetCellID(i);
         
         if (cell_array[cell_id].IsOccupied()) {
-          cOrganism * org = cell_array[cell_id].GetOrganism();
+          cOrganism* org = cell_array[cell_id].GetOrganism();
           old_target_organisms.Push(org);
           org->SetRunning(true);
         }
@@ -2699,96 +2677,127 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
         successfully_seeded = false;
       }
       
-      //cout << founders.GetSize() << " founders." << endl;
-      
-      // Now populate the target (and optionally the source) using InjectGenotype.
+      // Now populate the target using InjectGenotype.
       // In the future InjectClone could be used, but this would require the
       // deme keeping complete copies of the founder organisms when
       // we wanted to re-seed from the original founders.
-      for(int i=0; i<target_founders.GetSize(); i++) {
+      for (int i = 0; i < target_founders.GetSize(); i++) {
         int cellid = DemeSelectInjectionCell(target_deme, i);        
         SeedDeme_InjectDemeFounder(cellid, target_founders[i]->GetBioGroup("genotype"), ctx, &target_founders[i]->GetPhenotype(), false);
-        //target_deme.AddFounder(target_founders[i]->GetBioGroup("genotype"), &target_founders[i]->GetPhenotype());
         DemePostInjection(target_deme, cell_array[cellid]);
       }
 
-      for(int i=0; i<target_deme.GetSize(); ++i) {
+      for (int i = 0; i < target_deme.GetSize(); i++) {
         cPopulationCell& cell = target_deme.GetCell(i);
-        if(cell.IsOccupied()) {
+        if (cell.IsOccupied()) {
           target_deme.AddFounder(cell.GetOrganism()->GetBioGroup("genotype"), &cell.GetOrganism()->GetPhenotype());
         }
       }
       
-      // We either repeat this procedure in the source deme,
-      // restart the source deme from its old founders,
-      // or do nothing to the source deme...
-      
-      // source deme is replaced in the same way as the target
-      if (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 0) {
-        
-        source_deme.ClearFounders();
-        source_deme.UpdateStats();
-        source_deme.KillAll(ctx); 
-        
-        for(int i=0; i<source_founders.GetSize(); i++) {
-          int cellid = DemeSelectInjectionCell(source_deme, i);
-          SeedDeme_InjectDemeFounder(cellid, source_founders[i]->GetBioGroup("genotype"), ctx, &source_founders[i]->GetPhenotype(), false); 
-          source_deme.AddFounder(source_founders[i]->GetBioGroup("genotype"), &source_founders[i]->GetPhenotype());
-          DemePostInjection(source_deme, cell_array[cellid]);
-        }
-      }
-      // source deme is "reset" by re-injecting founder genotypes
-      else if (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 1) {
-        // Do not update the last founder generation, since the founders have not changed.
-        
-        source_deme.UpdateStats();
-        source_deme.KillAll(ctx);
-        // do not clear or change founder list
-        
-        // use it to recreate ancestral state of genotypes
-        tArray<int>& source_founders = source_deme.GetFounderGenotypeIDs();
-        tArray<cPhenotype>& source_founder_phenotypes = source_deme.GetFounderPhenotypes();
-        for(int i=0; i<source_founders.GetSize(); i++) {
-          
-          int cellid = DemeSelectInjectionCell(source_deme, i);
-          //cout << "founder: " << source_founders[i] << endl;
-          cBioGroup* bg = m_world->GetClassificationManager().GetBioGroupManager("genotype")->GetBioGroup(source_founders[i]);
-          SeedDeme_InjectDemeFounder(cellid, bg, ctx, &source_founder_phenotypes[i], true); 
-          DemePostInjection(source_deme, cell_array[cellid]);
-        }
-        //cout << target_deme.GetOrgCount() << " target orgs." << endl;
-        //cout << source_deme.GetOrgCount() << " source orgs." << endl;
-      }
-      // source deme is left untouched
-      else if (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 2) {
-      }
-      else if (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 3) {
-        source_deme.ClearTotalResourceAmountConsumed();
-      }
-      else if (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 4) {
-        source_deme.ClearTotalResourceAmountConsumed();
-        for(int i=0; i<source_founders.GetSize(); i++) {
-          source_founders[i]->Die(ctx);
-        }
-      }
-      else {
-        m_world->GetDriver().RaiseFatalException(1, "Unknown DEMES_DIVIDE_METHOD");
-      }
-      
       // remember to delete the old target organisms and adjust their genotypes
-      for(int i = 0; i < old_target_organisms.GetSize(); ++i) {
+      for (int i = 0; i < old_target_organisms.GetSize(); ++i) {
         old_target_organisms[i]->SetRunning(false);
         // ONLY delete target orgs if seeding was successful
         // otherwise they still exist in the population!!!
         if (successfully_seeded) delete old_target_organisms[i];
       }
-      
-      for(int i = 0; i < old_source_organisms.GetSize(); ++i) {
-        old_source_organisms[i]->SetRunning(false);
 
-        // delete old source organisms ONLY if source was replaced
-        if ((m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 0) || (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 1)) {
-          //delete old_source_organisms[i];
+      // We either repeat this procedure in the source deme,
+      // restart the source deme from its old founders,
+      // or do nothing to the source deme...
+      switch (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get()) {
+        case 0: { //source deme is replaced in the same way as the target
+          tArray<cOrganism*> old_source_organisms;
+          for (int i = 0; i < source_deme.GetSize(); i++) {
+            int cell_id = source_deme.GetCellID(i);
+
+            if (cell_array[cell_id].IsOccupied()) {
+              cOrganism* org = cell_array[cell_id].GetOrganism();
+              old_source_organisms.Push(org);
+              org->SetRunning(true);
+            }
+          }
+
+          source_deme.ClearFounders();
+          source_deme.UpdateStats();
+          source_deme.KillAll(ctx);
+
+          for (int i = 0; i < source_founders.GetSize(); i++) {
+            int cell_id = DemeSelectInjectionCell(source_deme, i);
+            SeedDeme_InjectDemeFounder(cell_id, source_founders[i]->GetBioGroup("genotype"), ctx, &source_founders[i]->GetPhenotype(), false);
+            source_deme.AddFounder(source_founders[i]->GetBioGroup("genotype"), &source_founders[i]->GetPhenotype());
+            DemePostInjection(source_deme, cell_array[cell_id]);
+          }
+
+          for (int i = 0; i < old_source_organisms.GetSize(); i++) {
+            old_source_organisms[i]->SetRunning(false);
+            delete old_source_organisms[i];
+          }
+          break;
+        }
+        case 1: { // source deme is "reset" by re-injecting founder genotype
+          // Do not update, clear or change the last founder generation, since the founders have not changed
+          source_deme.UpdateStats();
+          source_deme.KillAll(ctx);
+
+          tArray<int>& source_founders = source_deme.GetFounderGenotypeIDs();
+          tArray<cPhenotype>& source_founder_phenotypes = source_deme.GetFounderPhenotypes();
+          for (int i = 0; i < source_founders.GetSize(); i++) {
+            int cell_id = DemeSelectInjectionCell(source_deme, i);
+            cBioGroup* bg = m_world->GetClassificationManager().GetBioGroupManager("genotype")->GetBioGroup(source_founders[i]);
+            SeedDeme_InjectDemeFounder(cell_id, bg, ctx, &source_founder_phenotypes[i], true);
+            DemePostInjection(source_deme, cell_array[cell_id]);
+          }
+          break;
+        }
+        case 2: { // source deme is left untouched
+          break;
+        }
+        case 3: {
+          tArray<cOrganism*> old_source_organisms;
+          for (int i = 0; i < source_deme.GetSize(); i++) {
+            int cell_id = source_deme.GetCellID(i);
+
+            if (cell_array[cell_id].IsOccupied()) {
+              cOrganism* org = cell_array[cell_id].GetOrganism();
+              old_source_organisms.Push(org);
+              org->SetRunning(true);
+            }
+          }
+
+          source_deme.ClearTotalResourceAmountConsumed();
+
+          for (int i = 0; i < old_source_organisms.GetSize(); i++) {
+            old_source_organisms[i]->SetRunning(false);
+          }
+          break;
+        }
+        case 4: {
+          tArray<cOrganism*> old_source_organisms;
+          for (int i = 0; i < source_deme.GetSize(); i++) {
+            int cell_id = source_deme.GetCellID(i);
+
+            if (cell_array[cell_id].IsOccupied()) {
+              cOrganism* org = cell_array[cell_id].GetOrganism();
+              old_source_organisms.Push(org);
+              org->SetRunning(true);
+            }
+          }
+
+          source_deme.ClearTotalResourceAmountConsumed();
+
+          for (int i = 0; i < source_founders.GetSize(); i++) {
+            source_founders[i]->Die(ctx);
+          }
+
+          for (int i = 0; i < old_source_organisms.GetSize(); i++) {
+            old_source_organisms[i]->SetRunning(false);
+          }
+          break;
+        }
+        default: {
+          m_world->GetDriver().RaiseFatalException(1, "Unknown DEMES_DIVIDE_METHOD");
+          break;
         }
       }
     } //End DEMES_PROB_ORG_TRANSFER > 0 methods
