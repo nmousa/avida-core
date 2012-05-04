@@ -1141,42 +1141,46 @@ class cActionSetDemeIOGrid: public cAction
 {
 private:
   tArray<int> cell_list;
-  cString inputOutput;
+  cString input_output;
+  cString on_off;
 
 public:
   cActionSetDemeIOGrid(cWorld* world, const cString& args, Feedback&) :
     cAction(world, args)
-  , inputOutput("none")
+  , input_output("none")
+  , on_off("none")
   , cell_list(0)
   {
     cString largs(args);
-    inputOutput = largs.Pop(':');
+    input_output = largs.Pop(':');
+    on_off = largs.Pop(':');
     cString cell_list_str = largs.Pop(':');
     cell_list = cStringUtil::ReturnArray(cell_list_str);
   }
 
-  static const cString GetDescription() { return "Arguments: <Input/Output>:<cell id list>"; }
+  static const cString GetDescription() { return "Arguments: <Input/Output>:<On/Off>:<cell id list>"; }
 
   void Process(cAvidaContext& ctx)
   {
     const int num_demes = m_world->GetPopulation().GetNumDemes();
     const int deme_size = m_world->GetConfig().WORLD_X.Get() * (m_world->GetConfig().WORLD_Y.Get() / num_demes);
-    if (inputOutput == "Input") {
+    if (input_output == "Input") {
       int cell_id;
-        for (int deme_id = 0; deme_id < num_demes; deme_id++) {
-          m_world->GetPopulation().GetDeme(deme_id).SetInputCells(cell_list);
-          for (int i = 0; i < cell_list.GetSize(); i++) {
-            cell_id = m_world->GetPopulation().GetDeme(deme_id).GetAbsoluteCellID(cell_list[i]);
-            m_world->GetPopulation().GetCell(cell_id).SetCanInput(true);
-
+      for (int deme_id = 0; deme_id < num_demes; deme_id++) {
+        m_world->GetPopulation().GetDeme(deme_id).SetInputCells(cell_list);
+        for (int i = 0; i < cell_list.GetSize(); i++) {
+          cell_id = m_world->GetPopulation().GetDeme(deme_id).GetAbsoluteCellID(cell_list[i]);
+          if (on_off == "On") m_world->GetPopulation().GetCell(cell_id).SetCanInput(true);
+          else if (on_off == "Off") m_world->GetPopulation().GetCell(cell_id).SetCanInput(false);
         }
       }
-    } else if (inputOutput == "Output") {
+    } else if (input_output == "Output") {
       int cell_id;
       for (int deme_id = 0; deme_id < num_demes; deme_id++) {
         for (int i = 0; i < cell_list.GetSize(); i++) {
           cell_id = m_world->GetPopulation().GetDeme(deme_id).GetAbsoluteCellID(cell_list[i]);
-          m_world->GetPopulation().GetCell(cell_id).SetCanOutput(true);
+          if (on_off == "On") m_world->GetPopulation().GetCell(cell_id).SetCanOutput(true);
+          else if (on_off == "Off") m_world->GetPopulation().GetCell(cell_id).SetCanOutput(false);
         }
       }
     }
