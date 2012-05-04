@@ -1306,13 +1306,13 @@ void cPopulation::KillOrganism(cPopulationCell& in_cell, cAvidaContext& ctx)
 	// this organism's genome needs to be split up into fragments
   // and deposited in its cell.  We then also have to add the size of this genome to
   // the HGT resource.
-  if(m_world->GetConfig().ENABLE_HGT.Get()
+  if (m_world->GetConfig().ENABLE_HGT.Get()
 		 && (m_world->GetConfig().HGT_COMPETENCE_P.Get() > 0.0)) {
     in_cell.AddGenomeFragments(ctx, organism->GetGenome().GetSequence());
   }
   
   // And clear it!
-  in_cell.RemoveOrganism(ctx); 
+  in_cell.RemoveOrganism(ctx);
   if (!organism->IsRunning()) delete organism;
   else organism->GetPhenotype().SetToDelete();
   
@@ -2332,7 +2332,8 @@ void cPopulation::SeedDeme(cDeme& _deme, cBioGroup* bg, eBioUnitSource src, cAvi
  All organisms in the target deme are terminated, and a subset of the organisms in
  the source will be cloned to the target. Returns whether target deme was successfully seeded.
  */
-bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext& ctx) { 
+bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext& ctx)
+{
   cRandom& random = m_world->GetRandom();
   
   bool successfully_seeded = true;
@@ -2408,7 +2409,6 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
           InjectGenome(cellid, SRC_DEME_REPLICATE, i->first, ctx, i->second); 
           DemePostInjection(target_deme, cell_array[cellid]);
         }
-        
       }
     } else /* if (m_world->GetConfig().DEMES_SEED_METHOD.Get() != 0) */{
       
@@ -2424,7 +2424,7 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
         case 0: { // Random w/ replacement (meaning, we don't prevent the same genotype from
           // being selected more than once).
           tArray<cOrganism*> founders; // List of organisms we're going to transfer.
-          while(founders.GetSize() < m_world->GetConfig().DEMES_REPLICATE_SIZE.Get()) {
+          while (founders.GetSize() < m_world->GetConfig().DEMES_REPLICATE_SIZE.Get()) {
             int cellid = source_deme.GetCellID(random.GetUInt(source_deme.GetSize()));
             if (cell_array[cellid].IsOccupied()) {
               founders.Push(cell_array[cellid].GetOrganism());
@@ -2436,7 +2436,7 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
         }
         case 1: { // Sequential selection, from the beginning.  Good with DEMES_ORGANISM_PLACEMENT=3.
           tArray<cOrganism*> founders; // List of organisms we're going to transfer.
-          for(int i=0; i<m_world->GetConfig().DEMES_REPLICATE_SIZE.Get(); ++i) {
+          for(int i = 0; i < m_world->GetConfig().DEMES_REPLICATE_SIZE.Get(); ++i) {
             int cellid = source_deme.GetCellID(i);
             if (cell_array[cellid].IsOccupied()) {
               founders.Push(cell_array[cellid].GetOrganism());
@@ -2655,7 +2655,7 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
       // Methods that require a germline can sometimes come up short...
       //assert(source_founders.GetSize()>0);
       //assert(target_founders.GetSize()>0);
-      if(source_founders.GetSize() == 0) {
+      if (source_founders.GetSize() == 0) {
         return false;
       }
       
@@ -2668,11 +2668,11 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
       
       // cDoubleSum gen;
       tArray<cOrganism*> old_source_organisms;
-      for(int i=0; i<source_deme.GetSize(); ++i) {
+      for(int i = 0; i < source_deme.GetSize(); ++i) {
         int cell_id = source_deme.GetCellID(i);
         
         if (cell_array[cell_id].IsOccupied()) {
-          cOrganism * org = cell_array[cell_id].GetOrganism();
+          cOrganism* org = cell_array[cell_id].GetOrganism();
           old_source_organisms.Push(org);
           org->SetRunning(true);
         }
@@ -2708,7 +2708,7 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
       for(int i=0; i<target_founders.GetSize(); i++) {
         int cellid = DemeSelectInjectionCell(target_deme, i);        
         SeedDeme_InjectDemeFounder(cellid, target_founders[i]->GetBioGroup("genotype"), ctx, &target_founders[i]->GetPhenotype(), false);
-       // target_deme.AddFounder(target_founders[i]->GetBioGroup("genotype"), &target_founders[i]->GetPhenotype());
+        //target_deme.AddFounder(target_founders[i]->GetBioGroup("genotype"), &target_founders[i]->GetPhenotype());
         DemePostInjection(target_deme, cell_array[cellid]);
       }
 
@@ -2742,7 +2742,7 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
         // Do not update the last founder generation, since the founders have not changed.
         
         source_deme.UpdateStats();
-        source_deme.KillAll(ctx); 
+        source_deme.KillAll(ctx);
         // do not clear or change founder list
         
         // use it to recreate ancestral state of genotypes
@@ -2756,7 +2756,6 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
           SeedDeme_InjectDemeFounder(cellid, bg, ctx, &source_founder_phenotypes[i], true); 
           DemePostInjection(source_deme, cell_array[cellid]);
         }
-        
         //cout << target_deme.GetOrgCount() << " target orgs." << endl;
         //cout << source_deme.GetOrgCount() << " source orgs." << endl;
       }
@@ -2776,25 +2775,22 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
         m_world->GetDriver().RaiseFatalException(1, "Unknown DEMES_DIVIDE_METHOD");
       }
       
-      
       // remember to delete the old target organisms and adjust their genotypes
-      for(int i=0; i<old_target_organisms.GetSize(); ++i) {
+      for(int i = 0; i < old_target_organisms.GetSize(); ++i) {
         old_target_organisms[i]->SetRunning(false);
         // ONLY delete target orgs if seeding was successful
         // otherwise they still exist in the population!!!
         if (successfully_seeded) delete old_target_organisms[i];
       }
       
-      for(int i=0; i<old_source_organisms.GetSize(); ++i) {
+      for(int i = 0; i < old_source_organisms.GetSize(); ++i) {
         old_source_organisms[i]->SetRunning(false);
-        
+
         // delete old source organisms ONLY if source was replaced
-        if ( (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 0)
-            || (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 1) ) {
-          delete old_source_organisms[i];
+        if ((m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 0) || (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 1)) {
+          //delete old_source_organisms[i];
         }
       }
-      
     } //End DEMES_PROB_ORG_TRANSFER > 0 methods
   } else {
     // Probabilistic organism replication -- aka "fruiting body."
@@ -2833,8 +2829,7 @@ bool cPopulation::SeedDeme(cDeme& source_deme, cDeme& target_deme, cAvidaContext
       //}
     }
   }
-  
-	return successfully_seeded;
+  return successfully_seeded;
 }
 
 void cPopulation::SeedDeme_InjectDemeFounder(int _cell_id, cBioGroup* bg, cAvidaContext& ctx, cPhenotype* _phenotype, bool reset) 
@@ -5534,6 +5529,17 @@ void cPopulation::Inject(const Genome& genome, eBioUnitSource src, cAvidaContext
     genotype->RemoveBioUnit(&unit);
   }
   
+  if (m_world->GetConfig().NEURAL_NETWORKING.Get()) { //**
+    if (!m_world->GetConfig().DEMES_USE_GERMLINE.Get()) {
+      if (m_world->GetConfig().DEMES_SEED_METHOD.Get() == 1) {
+        if (m_world->GetConfig().DEMES_DIVIDE_METHOD.Get() == 2) {
+          cDeme& deme = deme_array[GetCell(cell_id).GetDemeID()];
+          deme.AddFounder(GetCell(cell_id).GetOrganism()->GetBioGroup("genotype"), &phenotype);
+        }
+      }
+    }
+  }
+
   if (inject_group) {
     cell_array[cell_id].GetOrganism()->SetOpinion(group_id);
     cell_array[cell_id].GetOrganism()->JoinGroup(group_id);
