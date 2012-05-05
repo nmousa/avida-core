@@ -3987,22 +3987,25 @@ void cStats::PrintMaxFitnessGermlines(const cString& filename)
 
   for (int i = 0; i < (int)highest_demes.size(); i++) {
     cDeme& deme = m_world->GetPopulation().GetDeme(highest_demes[i]);
-    
-    int genotype_id = 0;
-    for (int deme_cell_id = 0; deme_cell_id < deme.GetSize(); deme_cell_id++) {
-      cOrganism* org = deme.GetOrganism(deme_cell_id);
-      if (org) {
-        genotype_id = org->GetBioGroup("genotype")->GetID();
-        break;
-      }
-    }
-    cString genome = deme.GetGermline().GetLatest().GetSequence().AsString();
 
     df.Write(GetUpdate(), "Update [update]");
     df.Write(highest_demes[i], "Deme id [demeid]");
     df.Write(highest_fitness, "Deme fitness [fitness]");
-    df.Write(genotype_id, "Genome ID [genomeid]");
-    df.Write(genome, "Genome sequence [genome]");
+    
+    if (m_world->GetConfig().DEMES_USE_GERMLINE.Get()) {
+      int genotype_id = 0;
+      for (int deme_cell_id = 0; deme_cell_id < deme.GetSize(); deme_cell_id++) {
+        cOrganism* org = deme.GetOrganism(deme_cell_id);
+        if (org) {
+          genotype_id = org->GetBioGroup("genotype")->GetID();
+          break;
+        }
+      }
+      cString genome = deme.GetGermline().GetLatest().GetSequence().AsString();
+
+      df.Write(genotype_id, "Genome ID [genomeid]");
+      df.Write(genome, "Genome sequence [genome]");
+    }
 
     const int num_tasks = m_world->GetEnvironment().GetNumTasks();
     for (int task_id = 0; task_id < num_tasks; task_id++) {
