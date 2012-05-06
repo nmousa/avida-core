@@ -1822,8 +1822,8 @@ int cPopulationInterface::GetAVCellYPosition(int av_num)
 int cPopulationInterface::FindAV(bool input, bool output, int av_num)
 {
   assert(GetNumAV() > 0);
-  av_num = abs(av_num);
   const int num_AV = GetNumAV();
+  av_num = abs(av_num % num_AV);
   for (int i = 0; i < num_AV; i++) {
     int index = (i + av_num) % num_AV;
     if (m_avatars[index].av_input == input && m_avatars[index].av_output == output) {
