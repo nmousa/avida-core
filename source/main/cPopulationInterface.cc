@@ -1672,8 +1672,9 @@ void cPopulationInterface::SwitchPredPrey(int av_num)
 // Removes all the organism's avatars and removes them from cell lists
 void cPopulationInterface::RemoveAllAV()
 {
+  int num_av = GetNumAV();
   // Cycle through removing all avatars
-  for (int i = 0; i < GetNumAV(); i++) {
+  for (int i = 0; i < num_av; i++) {
     sIO_avatar tmpAV = m_avatars.Pop();
     // Check that avatar is actually in a cell
     if (tmpAV.av_cell_id >= 0) {

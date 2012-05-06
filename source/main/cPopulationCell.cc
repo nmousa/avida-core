@@ -315,10 +315,11 @@ int cPopulationCell::AddInputAV(cOrganism* org, int av_num)
   m_av_inputs.Push(make_pair(org, av_num));
   // Swaps the added avatar into a random position in the array
   int loc = m_world->GetRandom().GetUInt(0, GetNumAVInputs());
+  int last = GetNumAVInputs() - 1;
   cOrganism* exist_org = m_av_inputs[loc].first;
   int exist_av_num = m_av_inputs[loc].second;
-  m_av_inputs.Swap(loc, GetNumAVInputs() - 1);
-  exist_org->GetOrgInterface().SetAVCellIndex(GetNumAVInputs() - 1, exist_av_num);
+  m_av_inputs.Swap(loc, last);
+  exist_org->GetOrgInterface().SetAVCellIndex(last, exist_av_num);
   return loc;
 }
 
