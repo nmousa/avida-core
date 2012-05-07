@@ -389,7 +389,7 @@ private:
   tArray<int> m_inputs;
   tBuffer<int> m_input_buf;
   tBuffer<int> m_output_buf;
-  tArray<int> m_input_cells;
+  tSmartArray<int> m_input_cells;
   tHashMap<void*, cTaskState*> m_task_states;
   cReactionResult* m_reaction_result;
   tArray<int> m_task_count;               // Total times each task was performed (resetable during the life of the deme)
@@ -405,9 +405,10 @@ public:
   void ResetInput() { m_input_pointer = 0; m_input_buf.Clear(); }
   int GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id);
   void DoDemeInput(int value);
-  void SetInputCells(tArray<int> input_cells) { m_input_cells = input_cells; }
+  void AddInputCell(int cell_id);
+  void RemoveInputCell(int cell_id);
   void SendInputsMessage(cAvidaContext& ctx);
-  int DoDemeOutput(cAvidaContext& ctx, int value);
+  int DoDemeOutput(cAvidaContext& ctx, int value, double cell_bonus);
   int CheckForTask(cAvidaContext& ctx, int value);
   double GetCurBonus() const { return m_cur_bonus; }
   void ResetMeritBonus() { m_cur_bonus = m_world->GetConfig().DEFAULT_BONUS.Get(); }

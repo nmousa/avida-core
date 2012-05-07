@@ -46,8 +46,8 @@ cPopulationCell::cPopulationCell(const cPopulationCell& in_cell)
 , m_cell_data(in_cell.m_cell_data)
 , m_spec_state(in_cell.m_spec_state)
 , m_hgt(0)
-, can_input(false)
-, can_output(false)
+, m_can_input(false)
+, m_output_bonus(0.0)
 {
   // Copy the mutation rates into a new structure
   m_mut_rates = new cMutationRates(*in_cell.m_mut_rates);
@@ -75,8 +75,8 @@ void cPopulationCell::operator=(const cPopulationCell& in_cell)
 		m_deme_id = in_cell.m_deme_id;
 		m_cell_data = in_cell.m_cell_data;
 		m_spec_state = in_cell.m_spec_state;
-        can_input = in_cell.can_input;
-        can_output = in_cell.can_output;
+        m_can_input = in_cell.m_can_input;
+        m_output_bonus = in_cell.m_output_bonus;
 		
 		// Copy the mutation rates, constructing the structure as necessary
 		if (m_mut_rates == NULL)
@@ -451,6 +451,16 @@ tArray<cOrganism*> cPopulationCell::GetCellAVs()
     avatars[i + num_outputs] = m_av_inputs[i].first;
   }
   return avatars;
+}
+
+void cPopulationCell::SetCanInput(bool input)
+{
+  m_can_input = input;
+  if (input) {
+    m_world->GetPopulation().GetDeme(m_deme_id).AddInputCell(m_cell_id);
+  } else {
+    m_world->GetPopulation().GetDeme(m_deme_id).RemoveInputCell(m_cell_id);
+  }
 }
 
 

@@ -860,8 +860,9 @@ void cPopulationInterface::DoDemeInput(int value)
 // If the cell is turned on for deme output, adds the value to the deme's output buffer.
 void cPopulationInterface::DoDemeOutput(cAvidaContext& ctx, int value)
 {
-  if (m_world->GetPopulation().GetCell(m_cell_id).GetCanOutput()) {
-    GetDeme()->DoDemeOutput(ctx, value);
+  double cell_bonus = m_world->GetPopulation().GetCell(m_cell_id).GetOutputBonus();
+  if (cell_bonus > 0.0) {
+    GetDeme()->DoDemeOutput(ctx, value, cell_bonus);
   }
 }
 
@@ -1483,14 +1484,17 @@ bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& ms
   }
 
   if (!dropped) {
-    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2 && m_world->GetPopulation().GetCell(cell_id).GetCanOutput()) {
-      int task1 = GetDeme()->DoDemeOutput(ctx, msg.GetLabel());
-      int task2 = GetDeme()->DoDemeOutput(ctx, msg.GetData());
-      if (m_world->GetConfig().DEMES_IO_FEEDBACK.Get()) {
-        if (task2 > task1) task1 = task2;
-        cDeme* deme = GetDeme();
-        for (int i = 0; i < deme->GetSize(); i++) {
-          m_world->GetPopulation().GetCell(deme->GetAbsoluteCellID(i)).SetCellData(task1);
+    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2) {
+      double cell_bonus = m_world->GetPopulation().GetCell(cell_id).GetOutputBonus();
+      if (cell_bonus > 0.0) {
+        int task1 = GetDeme()->DoDemeOutput(ctx, msg.GetLabel(), cell_bonus);
+        int task2 = GetDeme()->DoDemeOutput(ctx, msg.GetData(), cell_bonus);
+        if (m_world->GetConfig().DEMES_IO_FEEDBACK.Get()) {
+          if (task2 > task1) task1 = task2;
+          cDeme* deme = GetDeme();
+          for (int i = 0; i < deme->GetSize(); i++) {
+            m_world->GetPopulation().GetCell(deme->GetAbsoluteCellID(i)).SetCellData(task1);
+          }
         }
       }
     }

@@ -1294,14 +1294,39 @@ void cDeme::DoDemeInput(int value)
 }
 
 //**
+void cDeme::AddInputCell(int cell_id)
+{
+  m_input_cells.Push(cell_id);
+}
+
+//**
+void cDeme::RemoveInputCell(int cell_id)
+{
+  for (int i = 0; i < m_input_cells.GetSize(); i++) {
+    if (m_input_cells[i] == cell_id) {
+      m_input_cells.Swap(i, m_input_cells.GetSize() - 1);
+      m_input_cells.Pop();
+      break;
+    }
+  }
+}
+
+//**
 void cDeme::SendInputsMessage(cAvidaContext& ctx)
 {
   for (int i = 0; i < m_input_cells.GetSize(); i++) {
-    int deme_cell_id = m_input_cells[i];
-    cPopulationCell& cell = m_world->GetPopulation().GetCell(GetAbsoluteCellID(deme_cell_id));
-    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 3) {
-      int input_value1 = GetNextDemeInput(ctx, deme_cell_id);
-      int input_value2 = GetNextDemeInput(ctx, deme_cell_id);
+    cPopulationCell& cell = m_world->GetPopulation().GetCell(m_input_cells[i]);
+    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2) {
+      int input_value = GetNextDemeInput(ctx, m_input_cells[i]);
+      cOrgMessage msg = cOrgMessage();
+      msg.SetLabel(input_value);
+      if (cell.GetNumAVInputs()) DoDemeInput(input_value);
+      for (int i = 0; i < cell.GetNumAVInputs(); i++) {
+        cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
+      }
+    } else if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 3) {
+      int input_value1 = GetNextDemeInput(ctx, m_input_cells[i]);
+      int input_value2 = GetNextDemeInput(ctx, m_input_cells[i]);
       cOrgMessage msg = cOrgMessage();
       msg.SetLabel(input_value1);
       msg.SetData(input_value2);
@@ -1312,20 +1337,12 @@ void cDeme::SendInputsMessage(cAvidaContext& ctx)
       for (int i = 0; i < cell.GetNumAVInputs(); i++) {
         cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
       }
-    } else {
-      int input_value = GetNextDemeInput(ctx, deme_cell_id);
-      cOrgMessage msg = cOrgMessage();
-      msg.SetLabel(input_value);
-      if (cell.GetNumAVInputs()) DoDemeInput(input_value);
-      for (int i = 0; i < cell.GetNumAVInputs(); i++) {
-        cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
-      }
     }
   }
 }
 
 // Adds the value to the deme's output and checks if any tasks were completed
-int cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
+int cDeme::DoDemeOutput(cAvidaContext& ctx, int value, double cell_bonus)
 {
   int task_completed = 0;
 
@@ -1403,8 +1420,8 @@ int cDeme::DoDemeOutput(cAvidaContext& ctx, int value)
   }
 
   // Update deme's merit bonus from reaction
-  m_cur_bonus *= result.GetMultBonus();
-  m_cur_bonus += result.GetAddBonus();
+  m_cur_bonus *= result.GetMultBonus() * cell_bonus;
+  m_cur_bonus += result.GetAddBonus() * cell_bonus;
 
   // If applying merit changes immediately, update the deme's merit merit
   if (m_world->GetConfig().MERIT_INC_APPLY_IMMEDIATE.Get()) {

@@ -93,7 +93,7 @@ private:
 public:
   typedef std::set<cPopulationCell*> neighborhood_type; //!< Type for cell neighborhoods.
 
-  cPopulationCell() : m_world(NULL), m_organism(NULL), m_hardware(NULL), m_mut_rates(NULL), m_migrant(false), m_hgt(0), can_input(false), can_output(false) { ; }
+  cPopulationCell() : m_world(NULL), m_organism(NULL), m_hardware(NULL), m_mut_rates(NULL), m_migrant(false), m_hgt(0), m_can_input(false), m_output_bonus(0.0) { ; }
   cPopulationCell(const cPopulationCell& in_cell);
   ~cPopulationCell() { delete m_mut_rates; delete m_hgt; }
 
@@ -179,13 +179,13 @@ public:
 
 // -------- Neural support -------- @JJB
 private:
-  bool can_input;
-  bool can_output;
+  bool m_can_input;
+  double m_output_bonus;
 public:
-  void SetCanInput(bool input) { can_input = input; }
-  void SetCanOutput(bool output) { can_output = output; }
-  bool GetCanInput() { return can_input; }
-  bool GetCanOutput() { return can_output; }
+  void SetCanInput(bool input);
+  void SetOutputBonus(double bonus) { m_output_bonus = bonus; }
+  bool GetCanInput() { return m_can_input; }
+  double GetOutputBonus() { return m_output_bonus; }
 
   // -------- HGT support --------
 public:

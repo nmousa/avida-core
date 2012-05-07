@@ -1142,23 +1142,23 @@ class cActionSetDemeIOGrid: public cAction
 private:
   tArray<int> cell_list;
   cString input_output;
-  cString on_off;
+  double cell_bonus;
 
 public:
   cActionSetDemeIOGrid(cWorld* world, const cString& args, Feedback&) :
     cAction(world, args)
   , input_output("none")
-  , on_off("none")
+  , cell_bonus(0.0)
   , cell_list(0)
   {
     cString largs(args);
     input_output = largs.Pop(':');
-    on_off = largs.Pop(':');
+    cell_bonus = largs.Pop(':').AsDouble();
     cString cell_list_str = largs.Pop(':');
     cell_list = cStringUtil::ReturnArray(cell_list_str);
   }
 
-  static const cString GetDescription() { return "Arguments: <Input/Output>:<On/Off>:<cell id list>"; }
+  static const cString GetDescription() { return "Arguments: <Input/Output>:<Double cell bonus>:<cell id list>"; }
 
   void Process(cAvidaContext& ctx)
   {
@@ -1167,11 +1167,10 @@ public:
     if (input_output == "Input") {
       int cell_id;
       for (int deme_id = 0; deme_id < num_demes; deme_id++) {
-        m_world->GetPopulation().GetDeme(deme_id).SetInputCells(cell_list);
         for (int i = 0; i < cell_list.GetSize(); i++) {
           cell_id = m_world->GetPopulation().GetDeme(deme_id).GetAbsoluteCellID(cell_list[i]);
-          if (on_off == "On") m_world->GetPopulation().GetCell(cell_id).SetCanInput(true);
-          else if (on_off == "Off") m_world->GetPopulation().GetCell(cell_id).SetCanInput(false);
+          if (cell_bonus > 0.0) m_world->GetPopulation().GetCell(cell_id).SetCanInput(true);
+          else if (cell_bonus == 0.0) m_world->GetPopulation().GetCell(cell_id).SetCanInput(false);
         }
       }
     } else if (input_output == "Output") {
@@ -1179,34 +1178,12 @@ public:
       for (int deme_id = 0; deme_id < num_demes; deme_id++) {
         for (int i = 0; i < cell_list.GetSize(); i++) {
           cell_id = m_world->GetPopulation().GetDeme(deme_id).GetAbsoluteCellID(cell_list[i]);
-          if (on_off == "On") m_world->GetPopulation().GetCell(cell_id).SetCanOutput(true);
-          else if (on_off == "Off") m_world->GetPopulation().GetCell(cell_id).SetCanOutput(false);
+          m_world->GetPopulation().GetCell(cell_id).SetOutputBonus(cell_bonus);
         }
       }
     }
   }
 };
-
-//**
-//class cActionAddEnvironmentAV: public cAction
-//{
-//
-//}
-
-//**
-//class cActionSendOrgInterruptMessage : public cAction
-//{
-//private:
-//  tArray<int> cell_list;
-//public:
-//  cActionSendOrgInterruptMessage(cWorld* world, const cString& args, Feedback&) :
-//    cAction(world, args)
-//  , cell_list(0)
-//  {
-//    cString largs(args);
-//
-//  }
-//};
 
 //**
 class cActionSendAvatarsInterruptMessage : public cAction
