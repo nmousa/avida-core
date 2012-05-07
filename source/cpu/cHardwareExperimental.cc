@@ -2106,6 +2106,7 @@ bool cHardwareExperimental::Inst_DemeIO(cAvidaContext& ctx)
 
   // Do deme output..
   m_organism->GetOrgInterface().DoDemeOutput(ctx, reg.value);
+  reg.Clear();
 
   // Do deme input..
   int value_in = m_organism->GetOrgInterface().GetNextDemeInput(ctx);
