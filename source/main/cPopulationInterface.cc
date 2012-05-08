@@ -858,12 +858,14 @@ void cPopulationInterface::DoDemeInput(int value)
 }
 
 // If the cell is turned on for deme output, adds the value to the deme's output buffer.
-void cPopulationInterface::DoDemeOutput(cAvidaContext& ctx, int value)
+bool cPopulationInterface::DoDemeOutput(cAvidaContext& ctx, int value)
 {
   double cell_bonus = m_world->GetPopulation().GetCell(m_cell_id).GetOutputBonus();
   if (cell_bonus > 0.0) {
     GetDeme()->DoDemeOutput(ctx, value, cell_bonus);
+    return true;
   }
+  return false;
 }
 
 

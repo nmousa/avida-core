@@ -179,7 +179,7 @@ public:
 
   int GetNextDemeInput(cAvidaContext& ctx);
   void DoDemeInput(int value);
-  void DoDemeOutput(cAvidaContext& ctx, int value);
+  bool DoDemeOutput(cAvidaContext& ctx, int value);
 
   // -------- HGT support --------
 public:
