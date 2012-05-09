@@ -155,7 +155,7 @@ public:
 
   virtual int GetNextDemeInput(cAvidaContext& ctx) = 0;
   virtual void DoDemeInput(int value) = 0;
-  virtual bool DoDemeOutput(cAvidaContext& ctx, int value) = 0;
+  virtual void DoDemeOutput(cAvidaContext& ctx, int value) = 0;
 
   virtual void DoHGTDonation(cAvidaContext& ctx) = 0;
   virtual void DoHGTConjugation(cAvidaContext& ctx) = 0;

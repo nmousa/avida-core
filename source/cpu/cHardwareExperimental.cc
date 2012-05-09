@@ -176,9 +176,8 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("output", &cHardwareExperimental::Inst_TaskOutput, nInstFlag::STALL, "Output ?BX?"),
     tInstLibEntry<tMethod>("output-zero", &cHardwareExperimental::Inst_TaskOutputZero, nInstFlag::STALL, "Output ?BX?"),
     tInstLibEntry<tMethod>("output-expire", &cHardwareExperimental::Inst_TaskOutputExpire, nInstFlag::STALL, "Output ?BX?, as long as the output has not yet expired"),
-    tInstLibEntry<tMethod>("deme-IO-untouched", &cHardwareExperimental::Inst_DemeIO_Untouched, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("deme-IO", &cHardwareExperimental::Inst_DemeIO, nInstFlag::STALL),
     tInstLibEntry<tMethod>("deme-IO-clear", &cHardwareExperimental::Inst_DemeIO_Clear, nInstFlag::STALL),
-    tInstLibEntry<tMethod>("deme-IO-dependent", &cHardwareExperimental::Inst_DemeIO_Dependent, nInstFlag::STALL),
     
     tInstLibEntry<tMethod>("mult", &cHardwareExperimental::Inst_Mult, 0, "Multiple BX by CX and place the result in ?BX?"),
     tInstLibEntry<tMethod>("div", &cHardwareExperimental::Inst_Div, 0, "Divide BX by CX and place the result in ?BX?"),
@@ -2101,7 +2100,7 @@ bool cHardwareExperimental::Inst_TaskOutputExpire(cAvidaContext& ctx)
 }
 
 //**
-bool cHardwareExperimental::Inst_DemeIO_Untouched(cAvidaContext& ctx)
+bool cHardwareExperimental::Inst_DemeIO(cAvidaContext& ctx)
 {
   const int reg_used = FindModifiedRegister(rBX);
   sInternalValue& reg = m_threads[m_cur_thread].reg[reg_used];
@@ -2128,27 +2127,6 @@ bool cHardwareExperimental::Inst_DemeIO_Clear(cAvidaContext& ctx)
   // Do deme output..
   m_organism->GetOrgInterface().DoDemeOutput(ctx, reg.value);
   reg.Clear();
-
-  // Do deme input..
-  int value_in = m_organism->GetOrgInterface().GetNextDemeInput(ctx);
-  if (value_in != -1) {
-    setInternalValue(reg_used, value_in, true);
-    m_organism->GetOrgInterface().DoDemeInput(value_in);
-  }
-
-  return true;
-}
-
-//**
-bool cHardwareExperimental::Inst_DemeIO_Dependent(cAvidaContext& ctx)
-{
-  const int reg_used = FindModifiedRegister(rBX);
-  sInternalValue& reg = m_threads[m_cur_thread].reg[reg_used];
-
-  // Do deme output..
-  if (m_organism->GetOrgInterface().DoDemeOutput(ctx, reg.value)) {
-    reg.Clear();
-  }
 
   // Do deme input..
   int value_in = m_organism->GetOrgInterface().GetNextDemeInput(ctx);

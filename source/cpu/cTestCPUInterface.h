@@ -149,7 +149,7 @@ public:
 
   int GetNextDemeInput(cAvidaContext& ctx) { return -1; }
   void DoDemeInput(int value) { ; }
-  bool DoDemeOutput(cAvidaContext& ctx, int value) { return false; }
+  void DoDemeOutput(cAvidaContext& ctx, int value) { ; }
 
   //! HGT donation (does nothing).
   void DoHGTDonation(cAvidaContext& ctx) { }
