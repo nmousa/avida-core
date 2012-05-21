@@ -144,3 +144,9 @@ void cTestCPUInterface::UpdateAVResources(cAvidaContext& ctx, const tArray<doubl
 {
   m_testcpu->ModifyResources(ctx, res_change);
 }
+
+tArray<int> cTestCPUInterface::NeuronLookAhead(cAvidaContext& ctx, int av_num, int distance_sought)
+{
+  tArray<int> temp(8, 0);
+  return temp;
+}

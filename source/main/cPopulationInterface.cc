@@ -1511,7 +1511,11 @@ bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& ms
     }
   }
 
-  if (lost) GetDeme()->messageSendFailed();
+  if (lost) {
+    GetDeme()->messageSendFailed();
+    cell.IncLostMessages();
+    cell.IncSentMessages();
+  }
 
   if (dropped || lost) {
     if (m_world->GetConfig().NET_LOG_MESSAGES.Get()) {
@@ -1530,6 +1534,8 @@ bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& ms
       GetDeme()->MessageSuccessfullySent();
     }
   }
+  cell.IncSentMessages();
+  cell.IncSuccessfulMessages();
   return true;
 }
 
@@ -2232,6 +2238,174 @@ void cPopulationInterface::UpdateAVResources(cAvidaContext& ctx, const tArray<do
   if (av_num < GetNumAV()) {
     m_world->GetPopulation().UpdateCellResources(ctx, res_change, m_avatars[av_num].av_cell_id);
   }
+}
+
+//**
+tArray<int> cPopulationInterface::NeuronLookAhead(cAvidaContext& ctx, int av_num, int distance_sought)
+{
+  const int av_cell_x = GetAVCellXPosition(av_num);
+  const int av_cell_y = GetAVCellYPosition(av_num);
+  const int facing = m_avatars[av_num].av_facing;
+
+  cDeme* deme = GetDeme();
+  const int deme_x_size = m_world->GetConfig().WORLD_X.Get();
+  const int deme_y_size = deme->GetSize() / deme_x_size;
+
+  int facing_offset_x = 0;
+  int facing_offset_y = 0;
+  int left_offset_x = 0;
+  int left_offset_y = 0;
+  int right_offset_x = 0;
+  int right_offset_y = 0;
+  switch (facing) {
+  case 0:
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_x = 1;
+    break;
+  case 1:
+    facing_offset_x = 1;
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_y = 1;
+    break;
+  case 2:
+    facing_offset_x = 1;
+    left_offset_y = -1;
+    right_offset_y = 1;
+    break;
+  case 3:
+    facing_offset_x = 1;
+    facing_offset_y = 1;
+    left_offset_y = -1;
+    right_offset_x = -1;
+    break;
+  case 4:
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_x = -1;
+    break;
+  case 5:
+    facing_offset_x = -1;
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_y = -1;
+    break;
+  case 6:
+    facing_offset_x = -1;
+    left_offset_y = 1;
+    right_offset_y = -1;
+    break;
+  case 7:
+    facing_offset_x = -1;
+    facing_offset_y = -1;
+    left_offset_y = 1;
+    right_offset_x = 1;
+    break;
+  }
+
+  int sent_msg_count = 0;
+  int lost_msg_count = 0;
+  int successful_msg_count = 0;
+  int num_input_AV = 0;
+  int num_output_AV = 0;
+  int num_empty_output_AV = 0;
+  int num_m_AV = 0;
+
+  if (distance_sought <= 0) distance_sought = m_world->GetConfig().LOOK_DIST.Get();
+  int max_dist = min(distance_sought, m_world->GetConfig().LOOK_DIST.Get());
+  int dist_used = max_dist;
+  int cur_x;
+  int cur_y;
+  int cell_id;
+  for (int cur_dist = 1; cur_dist <= max_dist; cur_dist++) {
+    // Center faced cells
+    cur_x = cur_dist * facing_offset_x;
+    cur_y = cur_dist * facing_offset_y;
+    if (cur_x < 0 || cur_x >= deme_x_size) {
+      dist_used = cur_dist - 1;
+      break;
+    }
+    cell_id = deme->GetCellID(cur_x, cur_y);
+    bool has_m_AV = false;
+    for (int i = 0; i < m_avatars.GetSize(); i++) {
+      if (m_avatars[i].av_cell_id == cell_id) {
+        has_m_AV = true;
+        break;
+      }
+    }
+    if (!has_m_AV) {
+      cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+      sent_msg_count += cell.GetSentMessages();
+      lost_msg_count += cell.GetLostMessages();
+      successful_msg_count += cell.GetSuccessfulMessages();
+      num_input_AV += cell.GetNumAVInputs();
+      num_output_AV += cell.GetNumAVOutputs();
+      if (cell.GetNumAVOutputs() > 0 && cell.GetNumAVInputs() == 0) num_empty_output_AV += cell.GetNumAVOutputs();
+    } else num_m_AV++;
+
+    // Left faced cells
+    int look_width = cur_dist / 2;
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * left_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * left_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size) break;
+
+      cell_id = deme->GetCellID(cur_x, cur_y);
+      has_m_AV = false;
+      for (int i = 0; i < m_avatars.GetSize(); i++) {
+        if (m_avatars[i].av_cell_id == cell_id) {
+          has_m_AV = true;
+          break;
+        }
+      }
+      if (!has_m_AV) {
+        cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+        sent_msg_count += cell.GetSentMessages();
+        lost_msg_count += cell.GetLostMessages();
+        successful_msg_count += cell.GetSuccessfulMessages();
+        num_input_AV += cell.GetNumAVInputs();
+        num_output_AV += cell.GetNumAVOutputs();
+        if (cell.GetNumAVOutputs() > 0 && cell.GetNumAVInputs() == 0) num_empty_output_AV += cell.GetNumAVOutputs();
+      } else num_m_AV++;
+    }
+
+    // Right faced cells
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * right_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * right_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size) break;
+
+      cell_id = deme->GetCellID(cur_x, cur_y);
+      has_m_AV = false;
+      for (int i = 0; i < m_avatars.GetSize(); i++) {
+        if (m_avatars[i].av_cell_id == cell_id) {
+          has_m_AV = true;
+          break;
+        }
+      }
+      if (!has_m_AV) {
+        cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+        sent_msg_count += cell.GetSentMessages();
+        lost_msg_count += cell.GetLostMessages();
+        successful_msg_count += cell.GetSuccessfulMessages();
+        num_input_AV += cell.GetNumAVInputs();
+        num_output_AV += cell.GetNumAVOutputs();
+        if (cell.GetNumAVOutputs() > 0 && cell.GetNumAVInputs() == 0) num_empty_output_AV ++;
+      } else num_m_AV++;
+    }
+  }
+
+  tArray<int> return_values(8);
+  return_values[0] = dist_used;
+  return_values[1] = sent_msg_count;
+  return_values[2] = lost_msg_count;
+  return_values[3] = successful_msg_count;
+  return_values[4] = num_input_AV;
+  return_values[5] = num_output_AV;
+  return_values[6] = num_empty_output_AV;
+  return_values[7] = num_m_AV;
+  return return_values;
 }
 
 

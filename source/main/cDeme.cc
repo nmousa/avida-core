@@ -513,6 +513,9 @@ void cDeme::Reset(cAvidaContext& ctx, bool resetResources, double deme_energy)
   MSG_sendFailed = 0;
   MSG_dropped = 0;
   MSG_SuccessfullySent = 0;
+  for (int i = 0; i < cell_ids.GetSize(); i++) {
+    m_world->GetPopulation().GetCell(cell_ids[i]).ResetMessageCounts();
+  }
   m_total_res_consumed = 0;
   m_switch_penalties = 0;
   m_num_active = 0;
@@ -1320,7 +1323,12 @@ void cDeme::SendInputsMessage(cAvidaContext& ctx)
       int input_value = GetNextDemeInput(ctx, m_input_cells[i]);
       cOrgMessage msg = cOrgMessage();
       msg.SetLabel(input_value);
-      if (cell.GetNumAVInputs()) DoDemeInput(input_value);
+      msg.SetLabelTaskID(0);
+      msg.SetTransCellID(m_input_cells[i]);
+      if (cell.GetNumAVInputs()) {
+        DoDemeInput(input_value);
+        cout << input_value << " -> " << m_input_cells[i] << endl;
+      }
       for (int i = 0; i < cell.GetNumAVInputs(); i++) {
         cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
       }
@@ -1420,8 +1428,8 @@ int cDeme::DoDemeOutput(cAvidaContext& ctx, int value, double cell_bonus)
   }
 
   // Update deme's merit bonus from reaction
-  m_cur_bonus *= result.GetMultBonus() * cell_bonus;
-  m_cur_bonus += result.GetAddBonus() * cell_bonus;
+  m_cur_bonus *= (result.GetMultBonus() * cell_bonus);
+  m_cur_bonus += (result.GetAddBonus() * cell_bonus);
 
   // If applying merit changes immediately, update the deme's merit merit
   if (m_world->GetConfig().MERIT_INC_APPLY_IMMEDIATE.Get()) {

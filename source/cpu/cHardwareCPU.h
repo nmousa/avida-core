@@ -185,6 +185,7 @@ protected:
   bool ForkThread(); // Adds a new thread based off of m_cur_thread.
   bool InterruptThread(int interruptType); // Create a new thread that interrupts the current thread
   bool KillThread(); // Kill the current thread!
+  void NewAvatarThread(int av_num) { ; }
 
   // ---------- Instruction Helpers -----------
   int FindModifiedRegister(int default_register);

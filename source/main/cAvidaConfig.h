@@ -494,8 +494,6 @@ public:
   CONFIG_ADD_VAR(DEMES_TRACK_SHANNON_INFO, int, 0, "Enable shannon mutual information tracking for demes.");
   CONFIG_ADD_VAR(DEMES_MUT_ORGS_ON_REPLICATION, int, 0, "Mutate orgs using germline mutation rates when they are copied to a new deme (using DEMES_SEED_METHOD 1): 0=OFF, 1=ON");
   CONFIG_ADD_VAR(DEMES_ORGS_START_IN_GERM, int, 0, "Are orgs considered part of the germline at start?");
-  CONFIG_ADD_VAR(DEMES_IO_HANDLING, int, 0, "How is deme IO to be handled?\n0: serial input/output(default)\n1: parallel input/serial output\n2: parallel input/serial output checked on avatar messaging");
-  CONFIG_ADD_VAR(DEMES_IO_FEEDBACK, int, 0, "Whether feedback is on/off for deme tasks, returning whether outputs are tasks are completed to the cell data");
   
   
   // -------- Reversion config options --------
@@ -591,10 +589,16 @@ public:
   CONFIG_ADD_VAR(ACTIVE_MESSAGES_ENABLED, int, 0, "Enable active messages. \n0 = off\n2 = message creates parallel thread");
   CONFIG_ADD_VAR(CHECK_TASK_ON_SEND, bool, 1, "0: Don't check tasks on send, 1: Check tasks on send (default)");
 
+  // -------- Neural Networking config options --------
+  CONFIG_ADD_GROUP(BRAINS_GROUP, "Neuron-brains based neural networking and communication");
   CONFIG_ADD_VAR(NEURAL_NETWORKING, bool, 0, "Turns neural networking system on/off. \nRequires USE_AVATARS be turned on.");
+  CONFIG_ADD_VAR(DEMES_IO_HANDLING, int, 0, "How is deme IO to be handled?\n0: serial input/output(default)\n1: parallel input/serial output\n2: parallel input/serial output checked on avatar messaging");
+  CONFIG_ADD_VAR(DEMES_IO_FEEDBACK, int, 0, "Whether feedback is on/off for deme tasks, returning whether each output is a completed task to the cell data");
   CONFIG_ADD_VAR(SELF_COMMUNICATION, bool, 0, "Allows organisms to create self communication loops. \nAn organism's input avatars can receive messages from it's own output avatars.");
   CONFIG_ADD_VAR(NEURON_MAX_DIST, int, 0, "Maximum distance input avatars can move from the output avatar (manhattan distance)(0 = no limit)");
   CONFIG_ADD_VAR(NUM_INPUT_AV, int, 1, "Number of starting input avatars for each organism");
+  CONFIG_ADD_VAR(AV_THREADING, int, 0, "Whether each moving avatar is controlled by a separate thread");
+  CONFIG_ADD_VAR(NN_LOOK_DIST, int, 2, "How many cells in the faced dir the neural looking instructions will return for");
 
   // -------- Buying and Selling config options --------
   CONFIG_ADD_GROUP(BUY_SELL_GROUP, "Buying and Selling Parameters");

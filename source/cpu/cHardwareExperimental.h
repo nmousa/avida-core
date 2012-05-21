@@ -143,6 +143,7 @@ private:
       unsigned int wait_dst:4;
     };
     int wait_value;
+    int m_avatar_num;
     
     cCodeLabel read_label;
     cCodeLabel read_seq;
@@ -165,6 +166,7 @@ private:
     inline void ResetPromoterInstExecuted() { m_promoter_inst_executed = 0; }
     inline void setMessageTriggerType(int value) { m_messageTriggerType = value; }
     inline int getMessageTriggerType() { return m_messageTriggerType; }
+    inline int GetAvatarNum() { return m_avatar_num; }
   };
   
   
@@ -346,6 +348,7 @@ private:
   
   // --------  Thread Manipulation  -------
   bool ForkThread(bool spawn_active = false); // Adds a new thread based off of m_cur_thread.
+  void NewAvatarThread(int av_num);
   bool ExitThread(); // Kill the current thread!
   
   
@@ -561,6 +564,7 @@ private:
   bool Inst_IfNotNeuronInputHasOutputAV(cAvidaContext& ctx);
   bool Inst_IfNeuronInputFacedHasOutputAV(cAvidaContext& ctx);
   bool Inst_IfNotNeuronInputFacedHasOutputAV(cAvidaContext& ctx);
+  bool Inst_NeuronLookAhead(cAvidaContext& ctx);
   
   // Resource and Topography Sensing
   bool Inst_SenseResourceID(cAvidaContext& ctx); 

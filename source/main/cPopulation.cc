@@ -899,6 +899,9 @@ bool cPopulation::ActivateOrganism(cAvidaContext& ctx, cOrganism* in_organism, c
     int num_inputs = m_world->GetConfig().NUM_INPUT_AV.Get();
     for (int i = 0; i < num_inputs; i++) {
       in_organism->GetOrgInterface().AddAV(target_cell.GetID(), 0, true, false);
+      if (m_world->GetConfig().AV_THREADING.Get() && i > 0) {
+        in_organism->GetHardware().NewAvatarThread(i);
+      }
     }
     // Add output avatar
     in_organism->GetOrgInterface().AddAV(target_cell.GetID(), 0, false, true);

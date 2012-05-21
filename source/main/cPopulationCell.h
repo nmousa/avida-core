@@ -93,7 +93,7 @@ private:
 public:
   typedef std::set<cPopulationCell*> neighborhood_type; //!< Type for cell neighborhoods.
 
-  cPopulationCell() : m_world(NULL), m_organism(NULL), m_hardware(NULL), m_mut_rates(NULL), m_migrant(false), m_hgt(0), m_can_input(false), m_output_bonus(0.0) { ; }
+  cPopulationCell() : m_world(NULL), m_organism(NULL), m_hardware(NULL), m_mut_rates(NULL), m_migrant(false), m_hgt(0), m_can_input(false), m_output_bonus(0.0), m_sent_messages(0), m_successful_messages(0), m_lost_messages(0) { ; }
   cPopulationCell(const cPopulationCell& in_cell);
   ~cPopulationCell() { delete m_mut_rates; delete m_hgt; }
 
@@ -181,11 +181,21 @@ public:
 private:
   bool m_can_input;
   double m_output_bonus;
+  int m_sent_messages;
+  int m_successful_messages;
+  int m_lost_messages;
 public:
   void SetCanInput(bool input);
-  void SetOutputBonus(double bonus) { m_output_bonus = bonus; }
   bool GetCanInput() { return m_can_input; }
+  void SetOutputBonus(double bonus) { m_output_bonus = bonus; }
   double GetOutputBonus() { return m_output_bonus; }
+  void ResetMessageCounts();
+  void IncSentMessages() { m_sent_messages++; }
+  void IncSuccessfulMessages() { m_successful_messages++; }
+  void IncLostMessages() { m_lost_messages++; }
+  int GetSentMessages() { return m_sent_messages; }
+  int GetSuccessfulMessages() { return m_successful_messages; }
+  int GetLostMessages() { return m_lost_messages; }
 
   // -------- HGT support --------
 public:

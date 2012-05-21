@@ -479,6 +479,7 @@ void cHardwareExperimental::cLocalThread::operator=(const cLocalThread& in_threa
   m_promoter_inst_executed = in_thread.m_promoter_inst_executed;
   m_execurate = in_thread.m_execurate;
   m_messageTriggerType = in_thread.m_messageTriggerType;
+  m_avatar_num = 0; // Do not want to replicate multiple threads controlling the same avatar, so set to default value
   
   for (int i = 0; i < NUM_REGISTERS; i++) reg[i] = in_thread.reg[i];
   for (int i = 0; i < NUM_HEADS; i++) heads[i] = in_thread.heads[i];
@@ -522,6 +523,7 @@ void cHardwareExperimental::cLocalThread::Reset(cHardwareExperimental* in_hardwa
   m_promoter_inst_executed = 0;
 
   m_messageTriggerType = -1;
+  m_avatar_num = 0;
 }
 
 
@@ -1276,10 +1278,30 @@ bool cHardwareExperimental::ForkThread(bool spawn_active)
   return true;
 }
 
+//**
+void cHardwareExperimental::NewAvatarThread(int av_num)
+{
+  const int num_threads = m_threads.GetSize();
+  m_threads.Resize(num_threads + 1);
+  m_threads[num_threads] = m_threads[m_cur_thread];
+  m_threads[num_threads].active = true;
+
+  int new_id = 0;
+  while ((m_thread_id_chart >> new_id) & 1) new_id++;
+  m_threads[num_threads].SetID(new_id);
+  m_thread_id_chart |= (1 << new_id);
+
+  m_threads[num_threads].m_avatar_num = av_num;
+  return;
+}
+
 bool cHardwareExperimental::ExitThread()
 {
   // Make sure that there is always at least one thread awake...
   if ((m_threads.GetSize() == 1) || (int(m_waiting_threads) == (m_threads.GetSize() - 1))) return false;
+
+  // If neural networking avatar threading, only exit if it is a messaging thread
+  if (m_world->GetConfig().AV_THREADING.Get() && m_threads[m_cur_thread].getMessageTriggerType() == -1) return false;
   
   // Note the current thread and set the current back one.
   const int kill_thread = m_cur_thread;
@@ -3552,11 +3574,16 @@ bool cHardwareExperimental::Inst_RotateAwayOrgID(cAvidaContext& ctx)
 // Rotate the register-value-selected avatar, left by one
 bool cHardwareExperimental::Inst_RotateNeuronAVLeft(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
-
+  int avatar_num;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+    } else return false;
+  } else {
+    const int avatar_reg = FindModifiedRegister(rBX);
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
   return m_organism->GetOrgInterface().RotateAV(-1, avatar_num);
   //return m_organism->GetOrgInterface().RotateAV(-1);
 }
@@ -3564,11 +3591,16 @@ bool cHardwareExperimental::Inst_RotateNeuronAVLeft(cAvidaContext& ctx)
 // Rotate the register-value-selected avatar, right by one
 bool cHardwareExperimental::Inst_RotateNeuronAVRight(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
-
+  int avatar_num;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+    } else return false;
+  } else {
+    const int avatar_reg = FindModifiedRegister(rBX);
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
   return m_organism->GetOrgInterface().RotateAV(1, avatar_num);
   //return m_organism->GetOrgInterface().RotateAV(1);
 }
@@ -3576,13 +3608,21 @@ bool cHardwareExperimental::Inst_RotateNeuronAVRight(cAvidaContext& ctx)
 // Rotate the register-value-selected avatar, by the register set amount
 bool cHardwareExperimental::Inst_RotateNeuronAVbyX(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  const int rotate_reg = FindModifiedNextRegister(avatar_reg);
+  int avatar_num;
+  int rotate_reg;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+      rotate_reg = FindModifiedRegister(rBX);
+    } else return false;
+  } else {
+    int avatar_reg = FindModifiedRegister(rBX);
+    rotate_reg = FindModifiedNextRegister(avatar_reg);
 
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
   const int rotate = m_threads[m_cur_thread].reg[rotate_reg].value;
-
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
 
   return m_organism->GetOrgInterface().RotateAV(rotate, avatar_num);
   //const int rotate_reg = FindModifiedRegister(rBX);
@@ -3593,23 +3633,36 @@ bool cHardwareExperimental::Inst_RotateNeuronAVbyX(cAvidaContext& ctx)
 // Move the register-value-selected avatar forward into its faced cell
 bool cHardwareExperimental::Inst_MoveNeuronAV(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
-
+  int avatar_num;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+    } else return false;
+  } else {
+    const int avatar_reg = FindModifiedRegister(rBX);
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
   return m_organism->GetOrgInterface().MoveAV(ctx, avatar_num);
   //return m_organism->GetOrgInterface().MoveAV(ctx);
 }
 
 bool cHardwareExperimental::Inst_GetAVFacedDir(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  const int output_reg = FindModifiedNextRegister(avatar_reg);
+  int avatar_num;
+  int output_reg;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+      output_reg = FindModifiedRegister(rBX);
+    } else return false;
+  } else {
+    const int avatar_reg = FindModifiedRegister(rBX);
+    output_reg = FindModifiedNextRegister(avatar_reg);
 
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
-
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
   setInternalValue(output_reg, m_organism->GetOrgInterface().GetAVFacing(avatar_num), true);
   //setInternalValue(output_reg, m_organism->GetOrgInterface().GetAVFacing(), true);
   return true;
@@ -3618,10 +3671,16 @@ bool cHardwareExperimental::Inst_GetAVFacedDir(cAvidaContext& ctx)
 // If the register-value-selected input avatar occupies a cell that also has an output avatar, execute next
 bool cHardwareExperimental::Inst_IfNeuronInputHasOutputAV(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  int avatar_num;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+    } else return false;
+  } else {
+    const int avatar_reg = FindModifiedRegister(rBX);
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
 
   if (!m_organism->GetOrgInterface().HasOutputAV(avatar_num)) {
   //if (!m_organism->GetOrgInterface().HasOutputAV()) {
@@ -3633,10 +3692,16 @@ bool cHardwareExperimental::Inst_IfNeuronInputHasOutputAV(cAvidaContext& ctx)
 // If the register-value-selected input avatar does not occupy a cell that has an output avatar, execute next
 bool cHardwareExperimental::Inst_IfNotNeuronInputHasOutputAV(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  int avatar_num;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+    } else return false;
+  } else {
+    const int avatar_reg = FindModifiedRegister(rBX);
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
 
   if (m_organism->GetOrgInterface().HasOutputAV(avatar_num)) {
   //if (m_organism->GetOrgInterface().HasOutputAV()) {
@@ -3648,10 +3713,16 @@ bool cHardwareExperimental::Inst_IfNotNeuronInputHasOutputAV(cAvidaContext& ctx)
 // If the register-value-selected input avatar is facing a cell with an output avatar, execute next
 bool cHardwareExperimental::Inst_IfNeuronInputFacedHasOutputAV(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  int avatar_num;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+    } else return false;
+  } else {
+    const int avatar_reg = FindModifiedRegister(rBX);
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
 
   if (!m_organism->GetOrgInterface().FacedHasOutputAV(avatar_num)) {
   //if (!m_organism->GetOrgInterface().FacedHasOutputAV()) {
@@ -3663,16 +3734,56 @@ bool cHardwareExperimental::Inst_IfNeuronInputFacedHasOutputAV(cAvidaContext& ct
 // If the register-value-selected input avatar is facing a cell without an output avatar, execute next
 bool cHardwareExperimental::Inst_IfNotNeuronInputFacedHasOutputAV(cAvidaContext& ctx)
 {
-  const int avatar_reg = FindModifiedRegister(rBX);
-  int avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
-
-  avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  int avatar_num;
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      avatar_num = m_threads[m_cur_thread].GetAvatarNum();
+    } else return false;
+  } else {
+    const int avatar_reg = FindModifiedRegister(rBX);
+    avatar_num = m_threads[m_cur_thread].reg[avatar_reg].value;
+    avatar_num = m_organism->GetOrgInterface().FindAV(true, false, avatar_num);
+  }
 
   if (m_organism->GetOrgInterface().FacedHasOutputAV(avatar_num)) {
   //if (m_organism->GetOrgInterface().FacedHasOutputAV()) {
     getIP().Advance();
   }
   return true;
+}
+
+//**
+bool cHardwareExperimental::Inst_NeuronLookAhead(cAvidaContext& ctx)
+{
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      int av_num = m_threads[m_cur_thread].GetAvatarNum();
+
+      int distance_reg = FindModifiedRegister(rBX);
+      int sent_msg_count_reg = FindModifiedRegister(distance_reg);
+      int lost_msg_count_reg = FindModifiedNextRegister(sent_msg_count_reg);
+      int successful_msg_count_reg = FindModifiedNextRegister(lost_msg_count_reg);
+      int num_input_AV_reg = FindModifiedNextRegister(successful_msg_count_reg);
+      int num_output_AV_reg = FindModifiedNextRegister(num_input_AV_reg);
+      int num_empty_output_AV_reg = FindModifiedNextRegister(num_output_AV_reg);
+      int num_m_AV_reg = FindModifiedNextRegister(num_empty_output_AV_reg);
+
+      int distance_sought = m_threads[m_cur_thread].reg[distance_reg].value;
+
+      tArray<int> look_results = m_organism->GetOrgInterface().NeuronLookAhead(ctx, av_num, distance_sought);
+
+      setInternalValue(distance_reg, look_results[0], true);
+      setInternalValue(sent_msg_count_reg, look_results[1], true);
+      setInternalValue(lost_msg_count_reg, look_results[2], true);
+      setInternalValue(successful_msg_count_reg, look_results[3], true);
+      setInternalValue(num_input_AV_reg, look_results[4], true);
+      setInternalValue(num_output_AV_reg, look_results[5], true);
+      setInternalValue(num_empty_output_AV_reg, look_results[6], true);
+      setInternalValue(num_m_AV_reg, look_results[7], true);
+      return true;
+    }
+  }
+  return false;
 }
 
 

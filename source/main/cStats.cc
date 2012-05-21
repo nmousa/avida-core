@@ -3743,17 +3743,32 @@ void cStats::PrintHGTData(const cString& filename) {
  */
 void cStats::LogMessage(const cOrgMessage& msg, bool dropped, bool lost)
 {
-  m_message_log.push_back(message_log_entry_t(GetUpdate(),
-    msg.GetSender()->GetDeme()->GetID(),
-    msg.GetSenderCellID(),
-    msg.GetReceiverCellID(),
-    msg.GetTransCellID(),
-    msg.GetData(),
-    msg.GetLabel(),
-    msg.GetLabelTaskID(),
-    msg.GetDataTaskID(),
-    dropped,
-    lost));
+  if (msg.GetSender()) {
+    m_message_log.push_back(message_log_entry_t(GetUpdate(),
+      msg.GetSender()->GetDeme()->GetID(),
+      msg.GetSenderCellID(),
+      msg.GetReceiverCellID(),
+      msg.GetTransCellID(),
+      msg.GetData(),
+      msg.GetLabel(),
+      msg.GetLabelTaskID(),
+      msg.GetDataTaskID(),
+      dropped,
+      lost));
+  } else {
+    // Environmental message
+    m_message_log.push_back(message_log_entry_t(GetUpdate(),
+      -1, // Deme id
+      msg.GetSenderCellID(),
+      msg.GetReceiverCellID(),
+      msg.GetTransCellID(),
+      msg.GetData(),
+      msg.GetLabel(),
+      msg.GetLabelTaskID(),
+      msg.GetDataTaskID(),
+      dropped,
+      lost));
+  }
 }
 
 /*! Prints logged messages.

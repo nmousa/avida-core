@@ -48,6 +48,9 @@ cPopulationCell::cPopulationCell(const cPopulationCell& in_cell)
 , m_hgt(0)
 , m_can_input(false)
 , m_output_bonus(0.0)
+, m_sent_messages(0)
+, m_successful_messages(0)
+, m_lost_messages(0)
 {
   // Copy the mutation rates into a new structure
   m_mut_rates = new cMutationRates(*in_cell.m_mut_rates);
@@ -77,6 +80,9 @@ void cPopulationCell::operator=(const cPopulationCell& in_cell)
 		m_spec_state = in_cell.m_spec_state;
         m_can_input = in_cell.m_can_input;
         m_output_bonus = in_cell.m_output_bonus;
+        m_sent_messages = in_cell.m_sent_messages;
+        m_successful_messages = in_cell.m_successful_messages;
+        m_lost_messages = in_cell.m_lost_messages;
 		
 		// Copy the mutation rates, constructing the structure as necessary
 		if (m_mut_rates == NULL)
@@ -111,6 +117,9 @@ void cPopulationCell::Setup(cWorld* world, int in_id, const cMutationRates& in_r
   m_cell_data.update = -1;
   m_cell_data.territory = -1;
   m_spec_state = 0;
+  m_sent_messages = 0;
+  m_successful_messages = 0;
+  m_lost_messages = 0;
   
   if (m_mut_rates == NULL)
     m_mut_rates = new cMutationRates(in_rates);
@@ -463,6 +472,12 @@ void cPopulationCell::SetCanInput(bool input)
   }
 }
 
+void cPopulationCell::ResetMessageCounts()
+{
+  m_sent_messages = 0;
+  m_successful_messages = 0;
+  m_lost_messages = 0;
+}
 
 
 /*! Diffuse genome fragments from this cell to its neighbors.

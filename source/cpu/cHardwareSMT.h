@@ -244,6 +244,7 @@ public:
   // interrupt current thread
   bool InterruptThread(int interruptType) { return false; }
   int GetThreadMessageTriggerType(int _index) { return -1; }
+  void NewAvatarThread(int av_num) { ; }
   
   // --------  Parasite Stuff  --------
   bool ParasiteInfectHost(cBioUnit* bu);

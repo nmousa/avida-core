@@ -187,6 +187,7 @@ public:
   // interrupt current thread
   virtual bool InterruptThread(int interruptType) = 0; // only implemented in cHardwareCPU and cHardwareExperimental
   virtual int GetThreadMessageTriggerType(int _index) = 0;
+  virtual void NewAvatarThread(int av_num) = 0; // only implement in cHardwareExperimental
   
   
   // --------  Parasite Stuff  --------
