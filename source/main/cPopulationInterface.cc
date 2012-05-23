@@ -1484,7 +1484,7 @@ bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& ms
   }
 
   if (!dropped) {
-    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2) {
+    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2 || m_world->GetConfig().DEMES_IO_HANDLING.Get() == 4) {
       double cell_bonus = m_world->GetPopulation().GetCell(cell_id).GetOutputBonus();
       if (cell_bonus > 0.0) {
         int task1 = GetDeme()->DoDemeOutput(ctx, msg.GetLabel(), cell_bonus);
