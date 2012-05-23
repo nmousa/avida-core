@@ -1262,21 +1262,35 @@ int cDeme::GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id)
 
   int input = 0;
   switch(m_world->GetConfig().DEMES_IO_HANDLING.Get()) {
-  case 0: // serial input
+  case 0: { // serial input
     m_input_pointer %= m_inputs.GetSize();
     input = m_inputs[m_input_pointer++];
     break;
-  case 1: // parallel input
-  case 2: // parallel input with environmental messaging, restimulate
-  case 4: // parallel input with environmental messaging, scheduled
+          }
+  case 1: { // parallel input
     int row = deme_cell_id / GetWidth();
     input = m_inputs[row % m_inputs.GetSize()];
     break;
-  case 3: // serial input using a single message
+          }
+  case 2: { // parallel input with environmental messaging, restimulate
+    int row = deme_cell_id / GetWidth();
+    input = m_inputs[row % m_inputs.GetSize()];
+    break;
+          }
+  case 4: { // parallel input with environmental messaging, scheduled
+    int row = deme_cell_id / GetWidth();
+    input = m_inputs[row % m_inputs.GetSize()];
+    break;
+          }
+  case 3: { // serial input using a single message
     m_input_pointer %= m_inputs.GetSize();
     input = m_inputs[m_input_pointer++];
     break;
-  default: {}
+          }
+  default: {
+    m_world->GetDriver().RaiseFatalException(0, "Unknown DEMES_IO_HANDLING option");
+    break;
+           }
   }
 
   return input;
