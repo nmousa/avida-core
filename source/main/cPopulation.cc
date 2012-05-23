@@ -898,13 +898,19 @@ bool cPopulation::ActivateOrganism(cAvidaContext& ctx, cOrganism* in_organism, c
     // Add input avatars
     int num_inputs = m_world->GetConfig().NUM_INPUT_AV.Get();
     for (int i = 0; i < num_inputs; i++) {
-      in_organism->GetOrgInterface().AddAV(target_cell.GetID(), 0, true, false);
+      int facing;
+      if (m_world->GetConfig().AV_FACED_DIR.Get() == -1) facing = m_world->GetRandom().GetUInt(8);
+      else facing = m_world->GetConfig().AV_FACED_DIR.Get();
+      in_organism->GetOrgInterface().AddAV(target_cell.GetID(), facing, true, false);
       if (m_world->GetConfig().AV_THREADING.Get() && i > 0) {
         in_organism->GetHardware().NewAvatarThread(i);
       }
     }
     // Add output avatar
-    in_organism->GetOrgInterface().AddAV(target_cell.GetID(), 0, false, true);
+    int facing;
+    if (m_world->GetConfig().AV_FACED_DIR.Get() == -1) facing = m_world->GetRandom().GetUInt(8);
+    else facing = m_world->GetConfig().AV_FACED_DIR.Get();
+    in_organism->GetOrgInterface().AddAV(target_cell.GetID(), facing, false, true);
   }
 
   // Keep track of statistics for organism counts...

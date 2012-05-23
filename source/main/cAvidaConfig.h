@@ -598,7 +598,7 @@ public:
   CONFIG_ADD_VAR(NEURON_MAX_DIST, int, 0, "Maximum distance input avatars can move from the output avatar (manhattan distance)(0 = no limit)");
   CONFIG_ADD_VAR(NUM_INPUT_AV, int, 1, "Number of starting input avatars for each organism");
   CONFIG_ADD_VAR(AV_THREADING, int, 0, "Whether each moving avatar is controlled by a separate thread");
-  CONFIG_ADD_VAR(NN_LOOK_DIST, int, 2, "How many cells in the faced dir the neural looking instructions will return for");
+  CONFIG_ADD_VAR(AV_FACED_DIR, int, 0, "Which direction new avatars are created facing (-1 is random facing)");
 
   // -------- Buying and Selling config options --------
   CONFIG_ADD_GROUP(BUY_SELL_GROUP, "Buying and Selling Parameters");
