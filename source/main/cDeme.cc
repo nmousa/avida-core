@@ -1382,12 +1382,22 @@ int cDeme::DoDemeOutput(cAvidaContext& ctx, int value, double cell_bonus)
   if (!m_reaction_result) m_reaction_result = new cReactionResult(num_resources, num_tasks, num_reactions);
   cReactionResult& result = *m_reaction_result;
 
-  // Not actually set up for deme's using resources during reactions
-  tArray<double> res_in;
+  // Deme internal resource bins do not exist
   tArray<double> rbins_in;
 
+  int cell_id = cell_ids[0];
+  tArray<double> global_res_counts = m_world->GetPopulation().GetCellResources(cell_id, ctx);
+  tArray<double> deme_res_counts = m_world->GetPopulation().GetDemeCellResources(_id, cell_id, ctx);
+  tArray<double> total_res_counts = global_res_counts + deme_res_counts;
+
+  tArray<double> global_res_change(global_res_counts.GetSize());
+  global_res_change.SetAll(0.0);
+  tArray<double> deme_res_change(deme_res_counts.GetSize());
+  deme_res_change.SetAll(0.0);
+  tArray<double> total_res_change = global_res_change + deme_res_change;
+
   // The environment evaluates if a task and if a resulting reaction were completed
-  bool found = env.TestOutput(ctx, result, taskctx, m_task_count, m_reaction_count, res_in, rbins_in);
+  bool found = env.TestOutput(ctx, result, taskctx, m_task_count, m_reaction_count, total_res_counts, rbins_in);
 
   // No task completed, end here
   if (found == false) {
@@ -1436,6 +1446,19 @@ int cDeme::DoDemeOutput(cAvidaContext& ctx, int value, double cell_bonus)
   // Update deme's merit bonus from reaction
   m_cur_bonus *= (result.GetMultBonus() * cell_bonus);
   m_cur_bonus += (result.GetAddBonus() * cell_bonus);
+
+  // Denote consumed resources..
+  for (int i = 0; i < total_res_counts.GetSize(); i++) {
+    total_res_change[i] = result.GetProduced(i) - result.GetConsumed(i);
+  }
+
+  // Disassemble resources
+  global_res_change = total_res_change.Subset(0, global_res_change.GetSize());
+  deme_res_change = total_res_change.Subset(global_res_change.GetSize(), total_res_change.GetSize());
+
+  // Update resources
+  m_world->GetPopulation().UpdateCellResources(ctx, global_res_change, cell_id);
+  m_world->GetPopulation().UpdateDemeCellResources(ctx, deme_res_change, cell_id);
 
   // If applying merit changes immediately, update the deme's merit merit
   if (m_world->GetConfig().MERIT_INC_APPLY_IMMEDIATE.Get()) {
