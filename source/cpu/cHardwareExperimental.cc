@@ -299,6 +299,7 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("if-not-neuron-input-has-output-AV", &cHardwareExperimental::Inst_IfNotNeuronInputHasOutputAV, nInstFlag::STALL),
     tInstLibEntry<tMethod>("if-neuron-input-faced-has-output-AV", &cHardwareExperimental::Inst_IfNeuronInputFacedHasOutputAV, nInstFlag::STALL),
     tInstLibEntry<tMethod>("if-not-neuron-input-faced-has-output-AV", &cHardwareExperimental::Inst_IfNotNeuronInputFacedHasOutputAV, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("neuron-look-ahead", &cHardwareExperimental::Inst_NeuronLookAhead, nInstFlag::STALL),
     
     // Resource and Topography Sensing
     tInstLibEntry<tMethod>("sense-resource-id", &cHardwareExperimental::Inst_SenseResourceID, nInstFlag::STALL), 
