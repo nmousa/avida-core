@@ -1039,12 +1039,18 @@ bool cOrganism::SendMessage(cAvidaContext& ctx, cOrgMessage& msg)
 
   // Neural networking analysis, data recording
   if (m_world->GetConfig().NEURAL_NETWORKING.Get() && m_world->GetConfig().LOG_MESSAGE_TASKS.Get()) {
-    int label = msg.GetLabel();
-    int data = msg.GetData();
-    int label_task = m_interface->CheckForDemeTask(ctx, label);
-    int data_task = m_interface->CheckForDemeTask(ctx, data);
-    msg.SetLabelTaskID(label_task);
-    msg.SetDataTaskID(data_task);
+    if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3) {
+      int label = msg.GetLabel();
+      int label_task = m_interface->CheckForDemeTask(ctx, label);
+      msg.SetLabelTaskID(label_task);
+    } else {
+      int label = msg.GetLabel();
+      int data = msg.GetData();
+      int label_task = m_interface->CheckForDemeTask(ctx, label);
+      int data_task = m_interface->CheckForDemeTask(ctx, data);
+      msg.SetLabelTaskID(label_task);
+      msg.SetDataTaskID(data_task);
+    }
   }
 
   if (m_world->GetConfig().NEURAL_NETWORKING.Get()) {
@@ -1131,8 +1137,18 @@ std::pair<bool, cOrgMessage> cOrganism::RetrieveMessage() {
 		ret.first = true;
 		m_msg->received.pop_front();
 	}
-	
 	return ret;
+}
+
+std::pair<bool, cOrgMessage> cOrganism::PeekAtNextMessage() {
+  InitMessaging();
+  std::pair<bool, cOrgMessage> ret = std::make_pair(false, cOrgMessage());
+
+  if (m_msg->received.size() > 0) {
+    ret.second = m_msg->received.front();
+    ret.first = true;
+  }
+  return ret;
 }
 
 bool cOrganism::Move(cAvidaContext& ctx)

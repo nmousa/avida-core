@@ -2969,6 +2969,12 @@ int cPopulation::DemeSelectInjectionCell(cDeme& deme, int sequence) {
       cellid = deme.GetCellID(sequence);
       break;
     }
+    case 4: { // Specified placement.
+      cString cells = m_world->GetConfig().DEMES_PLACEMENT_CELLS.Get();
+      tArray<int> cell_array = cStringUtil::ReturnArray(cells);
+      assert(sequence < cell_array.GetSize());
+      cellid = deme.GetCellID(cell_array[sequence]);
+    }
     default: {
       assert(false); // Shouldn't ever reach here.
     }

@@ -3330,46 +3330,49 @@ public:
   }
 };
 
-//**
-class cActionCompeteDemesByMeritUnsuccessfulMessages : public cAbstractCompeteDemes
+class cActionCompeteDemesByNeuralMessaging : public cAbstractCompeteDemes
 {
 public:
-  cActionCompeteDemesByMeritUnsuccessfulMessages(cWorld* world, const cString& args, Feedback& feedback) : cAbstractCompeteDemes(world, args, feedback)
-  {
-  }
+  cActionCompeteDemesByNeuralMessaging(cWorld* world, const cString& args, Feedback& feedback) : cAbstractCompeteDemes(world, args, feedback) {}
 
-  ~cActionCompeteDemesByMeritUnsuccessfulMessages() {}
+  ~cActionCompeteDemesByNeuralMessaging() {}
 
-  static const cString GetDescription() { return "Compete demes according to each deme's current merit and the number of unsuccessful messages"; }
+  static const cString GetDescription() { return "Compete demes according to successful transfer from inputs to output and task completion"; }
 
   virtual double Fitness(cDeme& deme, cAvidaContext& ctx)
   {
-    deme.UpdateCurMerit();
-    double merit = deme.GetCurMerit().GetDouble();
-    int unsuccessful_msg = deme.GetMessageSendFailed();
-    double fitness = merit * 100.0 / double(unsuccessful_msg);
-    return fitness;
-  }
-};
+    tArray<int> task_counts = deme.GetTaskCount();
+    int total_task_count = 0;
+    for (int i = 0; i < task_counts.GetSize(); i++) {
+      total_task_count += task_counts[i];
+    }
 
-//**
-class cActionCompeteDemesByMeritMessaging : public cAbstractCompeteDemes
-{
-public:
-  cActionCompeteDemesByMeritMessaging(cWorld* world, const cString& args, Feedback& feedback) : cAbstractCompeteDemes(world, args, feedback)
-  {
-  }
+    int unnecessary_outputs = deme.GetInputOutputCount(0);
+    int from_input1 = deme.GetInputOutputCount(1);
+    int from_input2 = deme.GetInputOutputCount(2);
+    int from_both_inputs = deme.GetInputOutputCount(3);
+    
+    from_input1 = min(5, from_input1);
+    from_input2 = min(5, from_input2);
+    from_both_inputs = min(5, from_both_inputs - total_task_count);
+    total_task_count = min(5, total_task_count);
 
-  ~cActionCompeteDemesByMeritMessaging() {}
+    double fitness;
+    if (total_task_count) {
+      fitness = 100000.0 * (total_task_count + 15 - (from_input1 + from_input2 + from_both_inputs));
+    } else if (from_both_inputs) {
+      fitness = 1000.0 * (from_both_inputs + 11 - (from_input1 + from_input2));
+    } else if (from_input1 || from_input2) {
+      fitness = 100.0 * (from_input1 + from_input2);
+    } else {
+      fitness = 1.0;
+    }
+    fitness = fitness / (max(2, unnecessary_outputs) - 1);
 
-  static const cString GetDescription() { return "Compete demes according to each deme's current merit and the reducing the total number of messages"; }
+    if (deme.GetMessageSuccessfullySent() > 0) fitness *= 2.0;
+    if (deme.HasDoneInput()) fitness *= 2.0;
+    if (deme.HasDoneOutput()) fitness *= 2.0;
 
-  virtual double Fitness(cDeme& deme, cAvidaContext& ctx)
-  {
-    deme.UpdateCurMerit();
-    double merit = deme.GetCurMerit().GetDouble();
-    int total_msg = deme.GetMessageSendFailed() + deme.GetMessageSuccessfullySent();
-    double fitness = merit * 100.0 / double(total_msg);
     return fitness;
   }
 };
@@ -5616,8 +5619,7 @@ void RegisterPopulationActions(cActionLibrary* action_lib)
   action_lib->Register<cActionCompeteDemesByTaskCountAndEfficiency>("CompeteDemesByTaskCountAndEfficiency");
   action_lib->Register<cActionCompeteDemesByEnergyDistribution>("CompeteDemesByEnergyDistribution");
   action_lib->Register<cActionCompeteDemesByMerit>("CompeteDemesByMerit");
-  action_lib->Register<cActionCompeteDemesByMeritUnsuccessfulMessages>("CompeteDemesByMeritUnsuccessfulMessages");
-  action_lib->Register<cActionCompeteDemesByMeritMessaging>("CompeteDemesByMeritMessaging");
+  action_lib->Register<cActionCompeteDemesByNeuralMessaging>("CompeteDemesByNeuralMessaging");
 
   /* deme predicate*/
   action_lib->Register<cActionPred_DemeEventMoveCenter>("Pred_DemeEventMoveCenter");

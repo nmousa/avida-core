@@ -234,6 +234,13 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("wait-cond-equ", &cHardwareExperimental::Inst_WaitCondition_Equal, nInstFlag::STALL, ""),
     tInstLibEntry<tMethod>("wait-cond-less", &cHardwareExperimental::Inst_WaitCondition_Less, nInstFlag::STALL, ""),
     tInstLibEntry<tMethod>("wait-cond-gtr", &cHardwareExperimental::Inst_WaitCondition_Greater, nInstFlag::STALL, ""),
+
+    tInstLibEntry<tMethod>("wait-msg-type0", &cHardwareExperimental::Inst_WaitCondition_MsgType0, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("wait-msg-type1", &cHardwareExperimental::Inst_WaitCondition_MsgType1, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("wait-msg-type2", &cHardwareExperimental::Inst_WaitCondition_MsgType2, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("wait-msg-type3", &cHardwareExperimental::Inst_WaitCondition_MsgType3, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("wait-msg-type4", &cHardwareExperimental::Inst_WaitCondition_MsgType4, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("wait-msg-type5", &cHardwareExperimental::Inst_WaitCondition_MsgType5, nInstFlag::STALL),
     
     
     // Promoter Model
@@ -300,6 +307,11 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("if-neuron-input-faced-has-output-AV", &cHardwareExperimental::Inst_IfNeuronInputFacedHasOutputAV, nInstFlag::STALL),
     tInstLibEntry<tMethod>("if-not-neuron-input-faced-has-output-AV", &cHardwareExperimental::Inst_IfNotNeuronInputFacedHasOutputAV, nInstFlag::STALL),
     tInstLibEntry<tMethod>("neuron-look-ahead", &cHardwareExperimental::Inst_NeuronLookAhead, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("neuron-look-lost-messages", &cHardwareExperimental::Inst_NeuronLookLostMessages, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("neuron-look-empty-outputs", &cHardwareExperimental::Inst_NeuronLookEmptyOutputs, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("neuron-look-outputs", &cHardwareExperimental::Inst_NeuronLookOutputs, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("neuron-look-unconnected-outputs", &cHardwareExperimental::Inst_NeuronLookUnconnectedOutputs, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("get-AV-num", &cHardwareExperimental::Inst_GetAVNum, nInstFlag::STALL),
     
     // Resource and Topography Sensing
     tInstLibEntry<tMethod>("sense-resource-id", &cHardwareExperimental::Inst_SenseResourceID, nInstFlag::STALL), 
@@ -378,6 +390,13 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("msg-handler-type4", &cHardwareExperimental::Inst_START_Handler),
     tInstLibEntry<tMethod>("msg-handler-type5", &cHardwareExperimental::Inst_START_Handler),
     tInstLibEntry<tMethod>("end-handler", &cHardwareExperimental::Inst_End_Handler),
+
+    tInstLibEntry<tMethod>("catch-msg-type0", &cHardwareExperimental::Inst_Nop),
+    tInstLibEntry<tMethod>("catch-msg-type1", &cHardwareExperimental::Inst_Nop),
+    tInstLibEntry<tMethod>("catch-msg-type2", &cHardwareExperimental::Inst_Nop),
+    tInstLibEntry<tMethod>("catch-msg-type3", &cHardwareExperimental::Inst_Nop),
+    tInstLibEntry<tMethod>("catch-msg-type4", &cHardwareExperimental::Inst_Nop),
+    tInstLibEntry<tMethod>("catch-msg-type5", &cHardwareExperimental::Inst_Nop),
 
     // Control-type Instructions
     tInstLibEntry<tMethod>("scramble-registers", &cHardwareExperimental::Inst_ScrambleReg, nInstFlag::STALL),
@@ -496,6 +515,7 @@ void cHardwareExperimental::cLocalThread::operator=(const cLocalThread& in_threa
   wait_reg = in_thread.wait_reg;
   wait_dst = in_thread.wait_dst;
   wait_value = in_thread.wait_value;
+  m_msg_waiting = in_thread.m_msg_waiting;
   
   read_label = in_thread.read_label;
   read_seq = in_thread.read_seq;
@@ -525,6 +545,7 @@ void cHardwareExperimental::cLocalThread::Reset(cHardwareExperimental* in_hardwa
 
   m_messageTriggerType = -1;
   m_avatar_num = 0;
+  m_msg_waiting = -1;
 }
 
 
@@ -1598,6 +1619,71 @@ bool cHardwareExperimental::InterruptThread(int interruptType)
 
   const cInstruction label_inst = GetInstSet().GetInst(handlerHeadInstructionString);
 
+  if (interruptType == MSG_INTERRUPT && m_world->GetConfig().NEURAL_NETWORKING.Get()) {
+    for (int i = 0; i < m_threads.GetSize(); i++) {
+      if (m_threads[i].m_msg_waiting == interruptMsgType) {
+        std::pair<bool, cOrgMessage> retrieved = m_organism->PeekAtNextMessage();
+        if (retrieved.first) {
+          int old_thread = m_cur_thread;
+          m_cur_thread = i;
+          const int label_reg = FindModifiedRegister(rBX);
+          const int data_reg = FindNextRegister(label_reg);
+          if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3) {
+            setInternalValue(label_reg, retrieved.second.GetLabel(), true);
+          } else {
+            setInternalValue(label_reg, retrieved.second.GetLabel(), true);
+            setInternalValue(data_reg, retrieved.second.GetData(), true);
+          }
+          m_cur_thread = old_thread;
+          m_threads[i].active = true;
+          m_threads[i].m_msg_waiting = -1;
+        }
+      }
+    }
+  }
+
+  if (interruptType == MSG_INTERRUPT && m_world->GetConfig().NEURAL_NETWORKING.Get()) {
+    cString catchInstructionString;
+    catchInstructionString.Set("catch-msg-type%d", interruptMsgType);
+    const cInstruction catch_inst = GetInstSet().GetInst(catchInstructionString);
+
+    const cInstruction end_inst = GetInstSet().GetInst("end-handler");
+
+    for (int i = 0; i < m_threads.GetSize(); i++) {
+      if (m_threads[i].getMessageTriggerType() != -1 && m_threads[i].active) {
+        cHeadCPU search_head(IP(i));
+        int start = search_head.GetPosition();
+        search_head++;
+
+        while (search_head.GetPosition() != start) {
+          if (search_head.GetInst() == catch_inst) {
+            search_head++;
+            IP(i).Set(search_head);
+            std::pair<bool, cOrgMessage> retrieved = m_organism->PeekAtNextMessage();
+            if (retrieved.first) {
+              int old_thread = m_cur_thread;
+              m_cur_thread = i;
+              const int label_reg = FindModifiedRegister(rBX);
+              const int data_reg = FindNextRegister(label_reg);
+              if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3) {
+                setInternalValue(label_reg, retrieved.second.GetLabel(), true);
+              } else {
+                setInternalValue(label_reg, retrieved.second.GetLabel(), true);
+                setInternalValue(data_reg, retrieved.second.GetData(), true);
+              }
+              m_cur_thread = old_thread;
+            }
+            IP(i).Set(start);
+            break;
+          }
+          if (search_head.GetInst() == end_inst) {
+            break;
+          }
+        }
+      }
+    }
+  }
+
   cHeadCPU search_head(IP());
   int start_pos = search_head.GetPosition();
   search_head++;
@@ -1612,12 +1698,32 @@ bool cHardwareExperimental::InterruptThread(int interruptType)
 
   if (start_pos == search_head.GetPosition()) return false;
 
-  if (ForkThread(true)) {
-    const int num_threads = m_threads.GetSize() - 1;
-    m_threads[num_threads].setMessageTriggerType(interruptMsgType);
+  bool refresh = false;
+  int refresh_thread;
+  if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3 && interruptType == MSG_INTERRUPT) {
+    for (int i = 0; i < m_threads.GetSize(); i++) {
+      if (m_threads[i].getMessageTriggerType() == interruptMsgType) {
+        m_threads[i].active == true;
+        m_threads[i].m_msg_waiting = -1;
+        refresh = true;
+        refresh_thread = i;
+        break;
+      }
+    }
+  }
+
+  if (refresh || ForkThread(true)) {
+    int target_thread;
+    if (refresh) {
+      target_thread = refresh_thread;
+    } else {
+      const int num_threads = m_threads.GetSize() - 1;
+      m_threads[num_threads].setMessageTriggerType(interruptMsgType);
+      target_thread = num_threads;
+    }
 
     int old_thread = m_cur_thread;
-    m_cur_thread = num_threads;
+    m_cur_thread = target_thread;
 
     // move all heads to one past beginning of interrupt
     for (int i = 0; i < NUM_HEADS; i++) {
@@ -2622,6 +2728,16 @@ bool cHardwareExperimental::Inst_WaitCondition_Greater(cAvidaContext& ctx)
   m_threads[m_cur_thread].wait_dst = wait_dst;
   
   return true;
+}
+
+bool cHardwareExperimental::WaitCondition_Msg(cAvidaContext& ctx, int msg_type)
+{
+  if (m_threads[m_cur_thread].getMessageTriggerType() != -1) {
+    m_threads[m_cur_thread].active = false;
+    m_threads[m_cur_thread].m_msg_waiting = msg_type;
+    return true;
+  }
+  else return false;
 }
 
 
@@ -3761,7 +3877,7 @@ bool cHardwareExperimental::Inst_NeuronLookAhead(cAvidaContext& ctx)
       int av_num = m_threads[m_cur_thread].GetAvatarNum();
 
       int distance_reg = FindModifiedRegister(rBX);
-      int sent_msg_count_reg = FindModifiedRegister(distance_reg);
+      int sent_msg_count_reg = FindModifiedNextRegister(distance_reg);
       int lost_msg_count_reg = FindModifiedNextRegister(sent_msg_count_reg);
       int successful_msg_count_reg = FindModifiedNextRegister(lost_msg_count_reg);
       int num_input_AV_reg = FindModifiedNextRegister(successful_msg_count_reg);
@@ -3783,6 +3899,92 @@ bool cHardwareExperimental::Inst_NeuronLookAhead(cAvidaContext& ctx)
       setInternalValue(num_m_AV_reg, look_results[7], true);
       return true;
     }
+  }
+  return false;
+}
+
+bool cHardwareExperimental::Inst_NeuronLookLostMessages(cAvidaContext& ctx)
+{
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      int av_num = m_threads[m_cur_thread].GetAvatarNum();
+
+      int count_reg = FindModifiedRegister(rBX);
+      int distance_reg = FindModifiedNextRegister(count_reg);
+
+      tArray<int> look_results = m_organism->GetOrgInterface().NeuronLookLostMessages(ctx, av_num);
+
+      setInternalValue(count_reg, look_results[0], true);
+      setInternalValue(distance_reg, look_results[1], true);
+      return true;
+    }
+  }
+  return false;
+}
+
+bool cHardwareExperimental::Inst_NeuronLookEmptyOutputs(cAvidaContext& ctx)
+{
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      int av_num = m_threads[m_cur_thread].GetAvatarNum();
+
+      int count_reg = FindModifiedRegister(rBX);
+      int distance_reg = FindModifiedNextRegister(count_reg);
+
+      tArray<int> look_results = m_organism->GetOrgInterface().NeuronLookEmptyOutputs(ctx, av_num);
+
+      setInternalValue(count_reg, look_results[0], true);
+      setInternalValue(distance_reg, look_results[1], true);
+      return true;
+    }
+  }
+  return false;
+}
+
+bool cHardwareExperimental::Inst_NeuronLookOutputs(cAvidaContext& ctx)
+{
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      int av_num = m_threads[m_cur_thread].GetAvatarNum();
+
+      int count_reg = FindModifiedRegister(rBX);
+      int distance_reg = FindModifiedNextRegister(count_reg);
+
+      tArray<int> look_results = m_organism->GetOrgInterface().NeuronLookOutputs(ctx, av_num);
+
+      setInternalValue(count_reg, look_results[0], true);
+      setInternalValue(distance_reg, look_results[1], true);
+      return true;
+    }
+  }
+  return false;
+}
+
+bool cHardwareExperimental::Inst_NeuronLookUnconnectedOutputs(cAvidaContext& ctx)
+{
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    if (m_threads[m_cur_thread].getMessageTriggerType() == -1) {
+      int av_num = m_threads[m_cur_thread].GetAvatarNum();
+
+      int count_reg = FindModifiedRegister(rBX);
+      int distance_reg = FindModifiedNextRegister(count_reg);
+
+      tArray<int> look_results = m_organism->GetOrgInterface().NeuronLookUnconnectedOutputs(ctx, av_num);
+
+      setInternalValue(count_reg, look_results[0], true);
+      setInternalValue(distance_reg, look_results[1], true);
+      return true;
+    }
+  }
+  return false;
+}
+
+bool cHardwareExperimental::Inst_GetAVNum(cAvidaContext& ctx)
+{
+  if (m_world->GetConfig().AV_THREADING.Get()) {
+    int av_reg = FindModifiedRegister(rBX);
+    setInternalValue(av_reg, m_threads[m_cur_thread].GetAvatarNum(), false);
+    return true;
   }
   return false;
 }
@@ -5565,8 +5767,12 @@ bool cHardwareExperimental::Inst_RetrieveMessage(cAvidaContext& ctx)
   const int label_reg = FindModifiedRegister(rBX);
   const int data_reg = FindNextRegister(label_reg);
 
-  setInternalValue(label_reg, retrieved.second.GetLabel(), true);
-  setInternalValue(data_reg, retrieved.second.GetData(), true);
+  if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3) {
+    setInternalValue(label_reg, retrieved.second.GetLabel(), true);
+  } else {
+    setInternalValue(label_reg, retrieved.second.GetLabel(), true);
+    setInternalValue(data_reg, retrieved.second.GetData(), true);
+  }
   return true;
 }
 

@@ -1136,7 +1136,7 @@ class cActionSetOptimizeMinMax : public cAction
   };
 
 // For deme input/output, an event (SetDemeIOGrid) that sets listed cells deme input/output bool status to true
-// allowing organism's to complete deme-IO in those cells. Does not support and there is not yet an event to turn cells "off"
+// allowing organism's to complete deme-IO in those cells.
 class cActionSetDemeIOGrid: public cAction
 {
 private:
@@ -1198,6 +1198,28 @@ public:
     const int num_demes = m_world->GetPopulation().GetNumDemes();
     for (int deme_id = 0; deme_id < num_demes; deme_id++) {
       m_world->GetPopulation().GetDeme(deme_id).SendInputsMessage(ctx);
+    }
+  }
+};
+
+class cActionSendSelectiveInputMessage : public cAction
+{
+private:
+  tArray<int> input_ids;
+public:
+  cActionSendSelectiveInputMessage(cWorld* world, const cString& args, Feedback&) : cAction(world, args)
+  {
+    cString largs(args);
+    input_ids = cStringUtil::ReturnArray(largs);
+  }
+
+  static const cString GetDescription() { return "Arguments: <input ids list>"; }
+
+  void Process(cAvidaContext& ctx)
+  {
+    const int num_demes = m_world->GetPopulation().GetNumDemes();
+    for (int deme_id = 0; deme_id < num_demes; deme_id++) {
+      m_world->GetPopulation().GetDeme(deme_id).SendSelectiveInputMessage(ctx, input_ids);
     }
   }
 };
@@ -1451,9 +1473,8 @@ void RegisterEnvironmentActions(cActionLibrary* action_lib)
   action_lib->Register<cActionSetOptimizeMinMax>("SetOptimizeMinMax");
 
   action_lib->Register<cActionSetDemeIOGrid>("SetDemeIOGrid");
-  //action_lib->Register<cActionAddEnvironmentAV>("AddEnvironmentAV");
-  //action_lib->Register<cActionSendOrgInterruptMessage>("SendOrgInterruptMessage");
   action_lib->Register<cActionSendAvatarsInterruptMessage>("SendAvatarsInterruptMessage");
+  action_lib->Register<cActionSendSelectiveInputMessage>("SendSelectiveInputMessage");
   
   // MIGRATION_MATRIX
   action_lib->Register<cActionSetMigrationMatrix>("SetMigrationMatrix");

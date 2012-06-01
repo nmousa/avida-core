@@ -150,3 +150,27 @@ tArray<int> cTestCPUInterface::NeuronLookAhead(cAvidaContext& ctx, int av_num, i
   tArray<int> temp(8, 0);
   return temp;
 }
+
+tArray<int> cTestCPUInterface::NeuronLookLostMessages(cAvidaContext& ctx, int av_num)
+{
+  tArray<int> temp(2, 0);
+  return temp;
+}
+
+tArray<int> cTestCPUInterface::NeuronLookEmptyOutputs(cAvidaContext& ctx, int av_num)
+{
+  tArray<int> temp(2, 0);
+  return temp;
+}
+
+tArray<int> cTestCPUInterface::NeuronLookOutputs(cAvidaContext& ctx, int av_num)
+{
+  tArray<int> temp(2, 0);
+  return temp;
+}
+
+tArray<int> cTestCPUInterface::NeuronLookUnconnectedOutputs(cAvidaContext& ctx, int av_num)
+{
+  tArray<int> temp(2, 0);
+  return temp;
+}

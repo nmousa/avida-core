@@ -399,6 +399,7 @@ public:
   void ReceiveMessage(cOrgMessage& msg);
   //! Called when this organism attempts to move a received message into its CPU.
   std::pair<bool, cOrgMessage> RetrieveMessage();
+  std::pair<bool, cOrgMessage> PeekAtNextMessage();
   //! Returns the list of all messsages received by this organism.
   const message_list_type& GetReceivedMessages() { InitMessaging(); return m_msg->received; }
   //! Returns the list of all messages sent by this organism.

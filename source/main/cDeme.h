@@ -107,6 +107,8 @@ private:
   tArray<int> last_org_task_count;
   tArray<int> last_org_task_exe_count;
   tArray<int> last_org_reaction_count;
+  map<int, int> m_input_output_counts;
+  int m_last_input_key;
   
   double avg_founder_generation;  //Average generation of current founders                                    
   double generations_per_lifetime; //Generations between current founders and founders of parent  
@@ -239,10 +241,10 @@ public:
   void AddCurTask(int task_num) { cur_task_exe_count[task_num]++; }
   void AddCurReaction (int reaction_num) { cur_reaction_count[reaction_num]++; }
 
-  const tArray<int>& GetCurTaskExeCount() const { return cur_task_exe_count; } //**
-  const tArray<int>& GetLastTaskExeCount() const { return last_task_exe_count; } //**
-  const tArray<int>& GetCurReactionCount() const { return cur_reaction_count; } //**
-  const tArray<int>& GetLastReactionCount() const { return last_reaction_count; } //**
+  const tArray<int>& GetCurTaskExeCount() const { return cur_task_exe_count; }
+  const tArray<int>& GetLastTaskExeCount() const { return last_task_exe_count; }
+  const tArray<int>& GetCurReactionCount() const { return cur_reaction_count; }
+  const tArray<int>& GetLastReactionCount() const { return last_reaction_count; }
 
   const tArray<int>& GetCurOrgTaskCount() const { return cur_org_task_count; }
   const tArray<int>& GetLastOrgTaskCount() const { return last_org_task_count; }
@@ -408,6 +410,8 @@ public:
   void AddInputCell(int cell_id);
   void RemoveInputCell(int cell_id);
   void SendInputsMessage(cAvidaContext& ctx);
+  void SendSelectiveInputMessage(cAvidaContext& ctx, tArray<int> input_ids);
+  int GetInputOutputCount(int input_key) { return m_input_output_counts[input_key]; }
   int DoDemeOutput(cAvidaContext& ctx, int value, double cell_bonus);
   int CheckForTask(cAvidaContext& ctx, int value);
   double GetCurBonus() const { return m_cur_bonus; }

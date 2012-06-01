@@ -237,6 +237,10 @@ public:
   virtual const tArray<double>& GetAVFacedResources(cAvidaContext& ctx, int av_num = 0) = 0;
   virtual void UpdateAVResources(cAvidaContext& ctx, const tArray<double>& res_change, int av_num = 0) = 0;
   virtual tArray<int> NeuronLookAhead(cAvidaContext& ctx, int av_num, int distance_sought) = 0;
+  virtual tArray<int> NeuronLookLostMessages(cAvidaContext& ctx, int av_num) = 0;
+  virtual tArray<int> NeuronLookEmptyOutputs(cAvidaContext& ctx, int av_num) = 0;
+  virtual tArray<int> NeuronLookOutputs(cAvidaContext& ctx, int av_num) = 0;
+  virtual tArray<int> NeuronLookUnconnectedOutputs(cAvidaContext& ctx, int av_num) = 0;
 
   virtual void BeginSleep() = 0;
   virtual void EndSleep() = 0;

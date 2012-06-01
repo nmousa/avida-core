@@ -541,6 +541,8 @@ void cDeme::Reset(cAvidaContext& ctx, bool resetResources, double deme_energy)
   m_task_states.GetValues(task_states);
   for (int i = 0; i < task_states.GetSize(); i++) delete task_states[i];
   m_task_states.ClearAll();
+
+  m_input_output_counts.clear();
   
   consecutiveSuccessfulEventPeriods = 0;
   
@@ -1267,17 +1269,9 @@ int cDeme::GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id)
     input = m_inputs[m_input_pointer++];
     break;
           }
-  case 1: { // parallel input
-    int row = deme_cell_id / GetWidth();
-    input = m_inputs[row % m_inputs.GetSize()];
-    break;
-          }
-  case 2: { // parallel input with environmental messaging, restimulate
-    int row = deme_cell_id / GetWidth();
-    input = m_inputs[row % m_inputs.GetSize()];
-    break;
-          }
-  case 4: { // parallel input with environmental messaging, scheduled
+  case 1: // parallel input
+  case 2: // parallel input with environmental messaging, restimulates
+  case 4: { // parallel input with environmental messaging, scheduled, multiple outputs allowed
     int row = deme_cell_id / GetWidth();
     input = m_inputs[row % m_inputs.GetSize()];
     break;
@@ -1324,9 +1318,12 @@ void cDeme::RemoveInputCell(int cell_id)
 void cDeme::SendInputsMessage(cAvidaContext& ctx)
 {
   m_inputs.Resize(0);
-  for (int i = 0; i < m_input_cells.GetSize(); i++) {
-    cPopulationCell& cell = m_world->GetPopulation().GetCell(m_input_cells[i]);
-    if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2) {
+  switch(m_world->GetConfig().DEMES_IO_HANDLING.Get()) {
+  case 2: // parallel input with environmental messaging, restimulates
+  case 4: // parallel input with environmental messaging, scheduled, multiple outputs allowed
+  case 5: { // parallel input with environmental messaging, scheduled, only single output allowed
+    for (int i = 0; i < m_input_cells.GetSize(); i++) {
+      cPopulationCell& cell = m_world->GetPopulation().GetCell(m_input_cells[i]);
       int input_value = GetNextDemeInput(ctx, m_input_cells[i]);
       cOrgMessage msg = cOrgMessage();
       msg.SetLabel(input_value);
@@ -1338,7 +1335,12 @@ void cDeme::SendInputsMessage(cAvidaContext& ctx)
       for (int i = 0; i < cell.GetNumAVInputs(); i++) {
         cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
       }
-    } else if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 3) {
+    }
+    break;
+          }
+  case 3: { // serial input using a single message
+    for (int i = 0; i < m_input_cells.GetSize(); i++) {
+      cPopulationCell& cell = m_world->GetPopulation().GetCell(m_input_cells[i]);
       int input_value1 = GetNextDemeInput(ctx, m_input_cells[i]);
       int input_value2 = GetNextDemeInput(ctx, m_input_cells[i]);
       cOrgMessage msg = cOrgMessage();
@@ -1352,6 +1354,57 @@ void cDeme::SendInputsMessage(cAvidaContext& ctx)
         cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
       }
     }
+    break;
+          }
+  default: {
+    m_world->GetDriver().RaiseFatalException(0, "Unknown DEMES_IO_HANDLING option for SendInputsMessage");
+    break;
+           }
+  }
+}
+
+//**
+void cDeme::SendSelectiveInputMessage(cAvidaContext& ctx, tArray<int> input_ids)
+{
+  // Translate the input array into an input combination key
+  int input_key = 0;
+  tArray<bool> input_flags(m_input_cells.GetSize(), false);
+  for (int i = 0; i < input_ids.GetSize(); i++) {
+    input_key += int(pow(2.0, input_ids[i]));
+    input_flags[input_ids[i]] = true;
+  }
+  m_last_input_key = input_key;
+
+  // Check if input combination key exists yet, if not add it
+  map<int, int>::iterator it;
+  it = m_input_output_counts.find(input_key);
+  if (it == m_input_output_counts.end()) m_input_output_counts[input_key] = 0;
+
+  m_inputs.Resize(0);
+  switch(m_world->GetConfig().DEMES_IO_HANDLING.Get()) {
+  case 5: { // parallel input with environmental messaging, scheduled, only single output allowed
+    for (int i = 0; i < m_input_cells.GetSize(); i++) {
+      if (input_flags[i]) {
+        cPopulationCell& cell = m_world->GetPopulation().GetCell(m_input_cells[i]);
+        int input_value = GetNextDemeInput(ctx, m_input_cells[i]);
+        cOrgMessage msg = cOrgMessage();
+        msg.SetLabel(input_value);
+        msg.SetLabelTaskID(0);
+        msg.SetTransCellID(m_input_cells[i]);
+        if (cell.GetNumAVInputs()) {
+          DoDemeInput(input_value);
+          for (int i = 0; i < cell.GetNumAVInputs(); i++) {
+            cell.GetCellInputAVs()[i]->ReceiveMessage(msg);
+          }
+        }
+      }
+    }
+    break;
+          }
+  default: {
+    m_world->GetDriver().RaiseFatalException(0, "Unknown DEMES_IO_HANDLING option for SendSelectiveInputMessage");
+    break;
+           }
   }
 }
 
@@ -1399,16 +1452,34 @@ int cDeme::DoDemeOutput(cAvidaContext& ctx, int value, double cell_bonus)
   // The environment evaluates if a task and if a resulting reaction were completed
   bool found = env.TestOutput(ctx, result, taskctx, m_task_count, m_reaction_count, total_res_counts, rbins_in);
 
+  if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 5) {
+  }
+
+  switch(m_world->GetConfig().DEMES_IO_HANDLING.Get()) {
+  case 2: { // parallel input with environmental messaging, restimulates
+    SendInputsMessage(ctx);
+    break;
+          }
+  case 5: { // parallel input with environmental messaging, scheduled, only single output allowed
+    map<int, int>::iterator it;
+    int false_key = 0;
+    it = m_input_output_counts.find(false_key);
+    if (it == m_input_output_counts.end()) m_input_output_counts[false_key] = 0;
+    m_input_output_counts[m_last_input_key]++;
+    m_last_input_key = false_key;
+
+    m_inputs.Resize(0);
+    break;
+          }
+  default: {
+    break;
+           }
+  }
+
   // No task completed, end here
   if (found == false) {
     result.Invalidate();
     return task_completed;
-  }
-
-  // If a task was completed, reset the inputs by clearing, and send a new stimulus to the inputs
-  if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2) {
-    m_inputs.Resize(0);
-    SendInputsMessage(ctx);
   }
 
   // Update records with the results..

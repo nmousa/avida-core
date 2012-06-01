@@ -144,6 +144,7 @@ private:
     };
     int wait_value;
     int m_avatar_num;
+    int m_msg_waiting;
     
     cCodeLabel read_label;
     cCodeLabel read_seq;
@@ -497,6 +498,14 @@ private:
   bool Inst_WaitCondition_Equal(cAvidaContext& ctx);
   bool Inst_WaitCondition_Less(cAvidaContext& ctx);
   bool Inst_WaitCondition_Greater(cAvidaContext& ctx);
+
+  bool Inst_WaitCondition_MsgType0(cAvidaContext& ctx) { return WaitCondition_Msg(ctx, 0); }
+  bool Inst_WaitCondition_MsgType1(cAvidaContext& ctx) { return WaitCondition_Msg(ctx, 1); }
+  bool Inst_WaitCondition_MsgType2(cAvidaContext& ctx) { return WaitCondition_Msg(ctx, 2); }
+  bool Inst_WaitCondition_MsgType3(cAvidaContext& ctx) { return WaitCondition_Msg(ctx, 3); }
+  bool Inst_WaitCondition_MsgType4(cAvidaContext& ctx) { return WaitCondition_Msg(ctx, 4); }
+  bool Inst_WaitCondition_MsgType5(cAvidaContext& ctx) { return WaitCondition_Msg(ctx, 5); }
+  bool WaitCondition_Msg(cAvidaContext& ctx, int msg_type);
   
   // Promoter Model
   bool Inst_Promoter(cAvidaContext& ctx);
@@ -565,6 +574,11 @@ private:
   bool Inst_IfNeuronInputFacedHasOutputAV(cAvidaContext& ctx);
   bool Inst_IfNotNeuronInputFacedHasOutputAV(cAvidaContext& ctx);
   bool Inst_NeuronLookAhead(cAvidaContext& ctx);
+  bool Inst_NeuronLookLostMessages(cAvidaContext& ctx);
+  bool Inst_NeuronLookEmptyOutputs(cAvidaContext& ctx);
+  bool Inst_NeuronLookOutputs(cAvidaContext& ctx);
+  bool Inst_NeuronLookUnconnectedOutputs(cAvidaContext& ctx);
+  bool Inst_GetAVNum(cAvidaContext& ctx);
   
   // Resource and Topography Sensing
   bool Inst_SenseResourceID(cAvidaContext& ctx); 

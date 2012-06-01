@@ -1487,13 +1487,23 @@ bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& ms
     if (m_world->GetConfig().DEMES_IO_HANDLING.Get() == 2 || m_world->GetConfig().DEMES_IO_HANDLING.Get() == 4) {
       double cell_bonus = m_world->GetPopulation().GetCell(cell_id).GetOutputBonus();
       if (cell_bonus > 0.0) {
-        int task1 = GetDeme()->DoDemeOutput(ctx, msg.GetLabel(), cell_bonus);
-        int task2 = GetDeme()->DoDemeOutput(ctx, msg.GetData(), cell_bonus);
-        if (m_world->GetConfig().DEMES_IO_FEEDBACK.Get()) {
-          if (task2 > task1) task1 = task2;
-          cDeme* deme = GetDeme();
-          for (int i = 0; i < deme->GetSize(); i++) {
-            m_world->GetPopulation().GetCell(deme->GetAbsoluteCellID(i)).SetCellData(task1);
+        if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3) {
+          int task = GetDeme()->DoDemeOutput(ctx, msg.GetLabel(), cell_bonus);
+          if (m_world->GetConfig().DEMES_IO_FEEDBACK.Get()) {
+            cDeme* deme = GetDeme();
+            for (int i = 0; i < deme->GetSize(); i++) {
+              m_world->GetPopulation().GetCell(deme->GetAbsoluteCellID(i)).SetCellData(task);
+            }
+          }
+        } else {
+          int task1 = GetDeme()->DoDemeOutput(ctx, msg.GetLabel(), cell_bonus);
+          int task2 = GetDeme()->DoDemeOutput(ctx, msg.GetData(), cell_bonus);
+          if (m_world->GetConfig().DEMES_IO_FEEDBACK.Get()) {
+            if (task2 > task1) task1 = task2;
+            cDeme* deme = GetDeme();
+            for (int i = 0; i < deme->GetSize(); i++) {
+              m_world->GetPopulation().GetCell(deme->GetAbsoluteCellID(i)).SetCellData(task1);
+            }
           }
         }
       }
@@ -1534,6 +1544,7 @@ bool cPopulationInterface::SendNeuralMessage(cAvidaContext& ctx, cOrgMessage& ms
       GetDeme()->MessageSuccessfullySent();
     }
   }
+  if (cell.GetLostMessages()) cell.ResetMessageCounts();
   cell.IncSentMessages();
   cell.IncSuccessfulMessages();
   return true;
@@ -2322,7 +2333,7 @@ tArray<int> cPopulationInterface::NeuronLookAhead(cAvidaContext& ctx, int av_num
     // Center faced cells
     cur_x = cur_dist * facing_offset_x;
     cur_y = cur_dist * facing_offset_y;
-    if (cur_x < 0 || cur_x >= deme_x_size) {
+    if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) {
       dist_used = cur_dist - 1;
       break;
     }
@@ -2349,7 +2360,7 @@ tArray<int> cPopulationInterface::NeuronLookAhead(cAvidaContext& ctx, int av_num
     for (int width_offset = 1; width_offset <= look_width; width_offset++) {
       cur_x = cur_dist * facing_offset_x + width_offset * left_offset_x;
       cur_y = cur_dist * facing_offset_y + width_offset * left_offset_y;
-      if (cur_x < 0 || cur_x >= deme_x_size) break;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
 
       cell_id = deme->GetCellID(cur_x, cur_y);
       has_m_AV = false;
@@ -2374,7 +2385,7 @@ tArray<int> cPopulationInterface::NeuronLookAhead(cAvidaContext& ctx, int av_num
     for (int width_offset = 1; width_offset <= look_width; width_offset++) {
       cur_x = cur_dist * facing_offset_x + width_offset * right_offset_x;
       cur_y = cur_dist * facing_offset_y + width_offset * right_offset_y;
-      if (cur_x < 0 || cur_x >= deme_x_size) break;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
 
       cell_id = deme->GetCellID(cur_x, cur_y);
       has_m_AV = false;
@@ -2405,6 +2416,537 @@ tArray<int> cPopulationInterface::NeuronLookAhead(cAvidaContext& ctx, int av_num
   return_values[5] = num_output_AV;
   return_values[6] = num_empty_output_AV;
   return_values[7] = num_m_AV;
+  return return_values;
+}
+
+tArray<int> cPopulationInterface::NeuronLookLostMessages(cAvidaContext& ctx, int av_num)
+{
+  const int av_cell_x = GetAVCellXPosition(av_num);
+  const int av_cell_y = GetAVCellYPosition(av_num);
+  const int facing = m_avatars[av_num].av_facing;
+
+  cDeme* deme = GetDeme();
+  const int deme_x_size = m_world->GetConfig().WORLD_X.Get();
+  const int deme_y_size = deme->GetSize() / deme_x_size;
+
+  int facing_offset_x = 0;
+  int facing_offset_y = 0;
+  int left_offset_x = 0;
+  int left_offset_y = 0;
+  int right_offset_x = 0;
+  int right_offset_y = 0;
+  switch (facing) {
+  case 0:
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_x = 1;
+    break;
+  case 1:
+    facing_offset_x = 1;
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_y = 1;
+    break;
+  case 2:
+    facing_offset_x = 1;
+    left_offset_y = -1;
+    right_offset_y = 1;
+    break;
+  case 3:
+    facing_offset_x = 1;
+    facing_offset_y = 1;
+    left_offset_y = -1;
+    right_offset_x = -1;
+    break;
+  case 4:
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_x = -1;
+    break;
+  case 5:
+    facing_offset_x = -1;
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_y = -1;
+    break;
+  case 6:
+    facing_offset_x = -1;
+    left_offset_y = 1;
+    right_offset_y = -1;
+    break;
+  case 7:
+    facing_offset_x = -1;
+    facing_offset_y = -1;
+    left_offset_y = 1;
+    right_offset_x = 1;
+    break;
+  }
+
+  int lost_msg_count = 0;
+  int distance = 0;
+
+  int look_dist = m_world->GetConfig().LOOK_DIST.Get();
+  int cur_x;
+  int cur_y;
+  bool found_closest = false;
+  for (int cur_dist = 1; cur_dist <= look_dist; cur_dist++) {
+    // Center faced cells
+    cur_x = cur_dist * facing_offset_x;
+    cur_y = cur_dist * facing_offset_y;
+    if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+    cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+    if (cell.GetLostMessages()) {
+      if (!found_closest) {
+        distance = cur_dist;
+        found_closest = true;
+      }
+      lost_msg_count += cell.GetLostMessages();
+    }
+
+    // Left faced cells
+    int look_width = cur_dist / 2;
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * left_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * left_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+      cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+      if (cell.GetLostMessages()) {
+        if (!found_closest) {
+          distance = cur_dist;
+          found_closest = true;
+        }
+        lost_msg_count += cell.GetLostMessages();
+      }
+    }
+
+    // Right faced cells
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * right_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * right_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+      cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+      if (cell.GetLostMessages()) {
+        if (!found_closest) {
+          distance = cur_dist;
+          found_closest = true;
+        }
+        lost_msg_count += cell.GetLostMessages();
+      }
+    }
+  }
+
+  tArray<int> return_values(2);
+  return_values[0] = lost_msg_count;
+  return_values[1] = distance;
+  return return_values;
+}
+
+tArray<int> cPopulationInterface::NeuronLookEmptyOutputs(cAvidaContext& ctx, int av_num)
+{
+  const int av_cell_x = GetAVCellXPosition(av_num);
+  const int av_cell_y = GetAVCellYPosition(av_num);
+  const int facing = m_avatars[av_num].av_facing;
+
+  cDeme* deme = GetDeme();
+  const int deme_x_size = m_world->GetConfig().WORLD_X.Get();
+  const int deme_y_size = deme->GetSize() / deme_x_size;
+
+  int facing_offset_x = 0;
+  int facing_offset_y = 0;
+  int left_offset_x = 0;
+  int left_offset_y = 0;
+  int right_offset_x = 0;
+  int right_offset_y = 0;
+  switch (facing) {
+  case 0:
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_x = 1;
+    break;
+  case 1:
+    facing_offset_x = 1;
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_y = 1;
+    break;
+  case 2:
+    facing_offset_x = 1;
+    left_offset_y = -1;
+    right_offset_y = 1;
+    break;
+  case 3:
+    facing_offset_x = 1;
+    facing_offset_y = 1;
+    left_offset_y = -1;
+    right_offset_x = -1;
+    break;
+  case 4:
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_x = -1;
+    break;
+  case 5:
+    facing_offset_x = -1;
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_y = -1;
+    break;
+  case 6:
+    facing_offset_x = -1;
+    left_offset_y = 1;
+    right_offset_y = -1;
+    break;
+  case 7:
+    facing_offset_x = -1;
+    facing_offset_y = -1;
+    left_offset_y = 1;
+    right_offset_x = 1;
+    break;
+  }
+
+  int empty_outputs_count = 0;
+  int distance = 0;
+
+  int look_dist = m_world->GetConfig().LOOK_DIST.Get();
+  int cur_x;
+  int cur_y;
+  bool found_closest = false;
+  for (int cur_dist = 1; cur_dist <= look_dist; cur_dist++) {
+    // Center faced cells
+    cur_x = cur_dist * facing_offset_x;
+    cur_y = cur_dist * facing_offset_y;
+    if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+    cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+    if ((cell.GetNumAVOutputs() > 0 || cell.GetCanInput()) && cell.GetNumAVInputs() == 0) {
+      if (!found_closest) {
+        distance = cur_dist;
+        found_closest = true;
+      }
+      empty_outputs_count += cell.GetNumAVOutputs();
+      if (cell.GetCanInput()) empty_outputs_count++;
+    }
+
+    // Left faced cells
+    int look_width = cur_dist / 2;
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * left_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * left_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+      cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+      if ((cell.GetNumAVOutputs() > 0 || cell.GetCanInput()) && cell.GetNumAVInputs() == 0) {
+        if (!found_closest) {
+          distance = cur_dist;
+          found_closest = true;
+        }
+        empty_outputs_count += cell.GetNumAVOutputs();
+        if (cell.GetCanInput()) empty_outputs_count++;
+      }
+    }
+
+    // Right faced cells
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * right_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * right_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+      cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+      if ((cell.GetNumAVOutputs() > 0 || cell.GetCanInput()) && cell.GetNumAVInputs() == 0) {
+        if (!found_closest) {
+          distance = cur_dist;
+          found_closest = true;
+        }
+        empty_outputs_count += cell.GetNumAVOutputs();
+        if (cell.GetCanInput()) empty_outputs_count++;
+      }
+    }
+  }
+
+  tArray<int> return_values(2);
+  return_values[0] = empty_outputs_count;
+  return_values[1] = distance;
+  return return_values;
+}
+
+tArray<int> cPopulationInterface::NeuronLookOutputs(cAvidaContext& ctx, int av_num)
+{
+  const int av_cell_x = GetAVCellXPosition(av_num);
+  const int av_cell_y = GetAVCellYPosition(av_num);
+  const int facing = m_avatars[av_num].av_facing;
+
+  cDeme* deme = GetDeme();
+  const int deme_x_size = m_world->GetConfig().WORLD_X.Get();
+  const int deme_y_size = deme->GetSize() / deme_x_size;
+
+  int facing_offset_x = 0;
+  int facing_offset_y = 0;
+  int left_offset_x = 0;
+  int left_offset_y = 0;
+  int right_offset_x = 0;
+  int right_offset_y = 0;
+  switch (facing) {
+  case 0:
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_x = 1;
+    break;
+  case 1:
+    facing_offset_x = 1;
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_y = 1;
+    break;
+  case 2:
+    facing_offset_x = 1;
+    left_offset_y = -1;
+    right_offset_y = 1;
+    break;
+  case 3:
+    facing_offset_x = 1;
+    facing_offset_y = 1;
+    left_offset_y = -1;
+    right_offset_x = -1;
+    break;
+  case 4:
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_x = -1;
+    break;
+  case 5:
+    facing_offset_x = -1;
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_y = -1;
+    break;
+  case 6:
+    facing_offset_x = -1;
+    left_offset_y = 1;
+    right_offset_y = -1;
+    break;
+  case 7:
+    facing_offset_x = -1;
+    facing_offset_y = -1;
+    left_offset_y = 1;
+    right_offset_x = 1;
+    break;
+  }
+
+  int outputs_count = 0;
+  int distance = 0;
+
+  int look_dist = m_world->GetConfig().LOOK_DIST.Get();
+  int cur_x;
+  int cur_y;
+  bool found_closest = false;
+  for (int cur_dist = 1; cur_dist <= look_dist; cur_dist++) {
+    // Center faced cells
+    cur_x = cur_dist * facing_offset_x;
+    cur_y = cur_dist * facing_offset_y;
+    if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+    cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+    if (cell.GetNumAVOutputs() || cell.GetCanInput()) {
+      if (!found_closest) {
+        distance = cur_dist;
+        found_closest = true;
+      }
+      outputs_count += cell.GetNumAVOutputs();
+      if (cell.GetCanInput()) outputs_count++;
+    }
+
+    // Left faced cells
+    int look_width = cur_dist / 2;
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * left_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * left_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+      cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+      if (cell.GetNumAVOutputs() || cell.GetCanInput()) {
+        if (!found_closest) {
+          distance = cur_dist;
+          found_closest = true;
+        }
+        outputs_count += cell.GetNumAVOutputs();
+        if (cell.GetCanInput()) outputs_count++;
+      }
+    }
+
+    // Right faced cells
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * right_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * right_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+      cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+      if (cell.GetNumAVOutputs() || cell.GetCanInput()) {
+        if (!found_closest) {
+          distance = cur_dist;
+          found_closest = true;
+        }
+        outputs_count += cell.GetNumAVOutputs();
+        if (cell.GetCanInput()) outputs_count++;
+      }
+    }
+  }
+
+  tArray<int> return_values(2);
+  return_values[0] = outputs_count;
+  return_values[1] = distance;
+  return return_values;
+}
+
+tArray<int> cPopulationInterface::NeuronLookUnconnectedOutputs(cAvidaContext& ctx, int av_num)
+{
+  const int av_cell_x = GetAVCellXPosition(av_num);
+  const int av_cell_y = GetAVCellYPosition(av_num);
+  const int facing = m_avatars[av_num].av_facing;
+
+  cDeme* deme = GetDeme();
+  const int deme_x_size = m_world->GetConfig().WORLD_X.Get();
+  const int deme_y_size = deme->GetSize() / deme_x_size;
+
+  int facing_offset_x = 0;
+  int facing_offset_y = 0;
+  int left_offset_x = 0;
+  int left_offset_y = 0;
+  int right_offset_x = 0;
+  int right_offset_y = 0;
+  switch (facing) {
+  case 0:
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_x = 1;
+    break;
+  case 1:
+    facing_offset_x = 1;
+    facing_offset_y = -1;
+    left_offset_x = -1;
+    right_offset_y = 1;
+    break;
+  case 2:
+    facing_offset_x = 1;
+    left_offset_y = -1;
+    right_offset_y = 1;
+    break;
+  case 3:
+    facing_offset_x = 1;
+    facing_offset_y = 1;
+    left_offset_y = -1;
+    right_offset_x = -1;
+    break;
+  case 4:
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_x = -1;
+    break;
+  case 5:
+    facing_offset_x = -1;
+    facing_offset_y = 1;
+    left_offset_x = 1;
+    right_offset_y = -1;
+    break;
+  case 6:
+    facing_offset_x = -1;
+    left_offset_y = 1;
+    right_offset_y = -1;
+    break;
+  case 7:
+    facing_offset_x = -1;
+    facing_offset_y = -1;
+    left_offset_y = 1;
+    right_offset_x = 1;
+    break;
+  }
+
+  int outputs_count = 0;
+  int distance = 0;
+
+  int look_dist = m_world->GetConfig().LOOK_DIST.Get();
+  int cur_x;
+  int cur_y;
+  int cell_id;
+  bool found_closest = false;
+  for (int cur_dist = 1; cur_dist <= look_dist; cur_dist++) {
+    // Center faced cells
+    cur_x = cur_dist * facing_offset_x;
+    cur_y = cur_dist * facing_offset_y;
+    if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+
+    cell_id = deme->GetCellID(cur_x, cur_y);
+    bool has_m_AV = false;
+    for (int i = 0; i < m_avatars.GetSize(); i++) {
+      if (m_avatars[i].av_cell_id == cell_id) {
+        has_m_AV = true;
+        break;
+      }
+    }
+    if (!has_m_AV) {
+      cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+      if (cell.GetNumAVOutputs() || cell.GetCanInput()) {
+        if (!found_closest) {
+          distance = cur_dist;
+          found_closest = true;
+        }
+        outputs_count += cell.GetNumAVOutputs();
+        if (cell.GetCanInput()) outputs_count++;
+      }
+    }
+
+    // Left faced cells
+    int look_width = cur_dist / 2;
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * left_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * left_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+
+      cell_id = deme->GetCellID(cur_x, cur_y);
+      bool has_m_AV = false;
+      for (int i = 0; i < m_avatars.GetSize(); i++) {
+        if (m_avatars[i].av_cell_id == cell_id) {
+          has_m_AV = true;
+          break;
+        }
+      }
+      if (!has_m_AV) {
+        cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+        if (cell.GetNumAVOutputs() || cell.GetCanInput()) {
+          if (!found_closest) {
+            distance = cur_dist;
+            found_closest = true;
+          }
+          outputs_count += cell.GetNumAVOutputs();
+          if (cell.GetCanInput()) outputs_count++;
+        }
+      }
+    }
+
+    // Right faced cells
+    for (int width_offset = 1; width_offset <= look_width; width_offset++) {
+      cur_x = cur_dist * facing_offset_x + width_offset * right_offset_x;
+      cur_y = cur_dist * facing_offset_y + width_offset * right_offset_y;
+      if (cur_x < 0 || cur_x >= deme_x_size || cur_y < 0 || cur_y >= deme_y_size) break;
+
+      cell_id = deme->GetCellID(cur_x, cur_y);
+      bool has_m_AV = false;
+      for (int i = 0; i < m_avatars.GetSize(); i++) {
+        if (m_avatars[i].av_cell_id == cell_id) {
+          has_m_AV = true;
+          break;
+        }
+      }
+      if (!has_m_AV) {
+        cPopulationCell& cell = deme->GetCell(cur_x, cur_y);
+        if (cell.GetNumAVOutputs() || cell.GetCanInput()) {
+          if (!found_closest) {
+            distance = cur_dist;
+            found_closest = true;
+          }
+          outputs_count += cell.GetNumAVOutputs();
+          if (cell.GetCanInput()) outputs_count++;
+        }
+      }
+    }
+  }
+
+  tArray<int> return_values(2);
+  return_values[0] = outputs_count;
+  return_values[1] = distance;
   return return_values;
 }
 

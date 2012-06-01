@@ -466,7 +466,8 @@ public:
   CONFIG_ADD_VAR(DEMES_REPLICATE_LOG_START, int, 0, "Update at which to start logging deme replications");
   CONFIG_ADD_VAR(DEMES_PROB_ORG_TRANSFER, double, 0.0, "Probablity of an organism being transferred from the\nsource deme to the target deme");
   CONFIG_ADD_VAR(DEMES_ORGANISM_SELECTION, int, 0, "How should organisms be selected for transfer from\nsource to target during deme replication?\n0 = random with replacement\n1 = sequential\n2-6 = created, but not sure what they do\n7 = organism(s) flagged germline\n8=one of the organisms flagged as part of the germline");
-  CONFIG_ADD_VAR(DEMES_ORGANISM_PLACEMENT, int, 0, "How should organisms be placed during deme replication.\n0 = cell-array middle\n1 = deme center\n2 = random placement\n3 = sequential");
+  CONFIG_ADD_VAR(DEMES_ORGANISM_PLACEMENT, int, 0, "How should organisms be placed during deme replication.\n0 = cell-array middle\n1 = deme center\n2 = random placement\n3 = sequential\n4 = specified cells (DEMES_PLACEMENT_CELLS)");
+  CONFIG_ADD_VAR(DEMES_PLACEMENT_CELLS, cString, "", "For DEMES_ORGANISM_PLACEMENT 4, which cells organisms should be placed in");
   CONFIG_ADD_VAR(DEMES_ORGANISM_FACING, int, 0, "Which direction should organisms face after deme replication.\n0 = unchanged\n1 = northwest.\n2 = random.");
   CONFIG_ADD_VAR(DEMES_MAX_AGE, int, 500, "The maximum age of a deme (in updates) to be\nused for age-based replication");
   CONFIG_ADD_VAR(DEMES_MAX_BIRTHS, int, 100, "Max number of births that can occur within a deme;\nused with birth-count replication");
@@ -586,7 +587,7 @@ public:
   CONFIG_ADD_VAR(MESSAGE_SEND_BUFFER_SIZE, int, 1, "Size of message send buffer (stores messages that were sent)\nTASKS NOT CHECKED ON 0!\n-1=inf, default=1.");
   CONFIG_ADD_VAR(MESSAGE_RECV_BUFFER_SIZE, int, 8, "Size of message receive buffer (stores messages that are received); -1=inf, default=8.");
   CONFIG_ADD_VAR(MESSAGE_RECV_BUFFER_BEHAVIOR, bool, 0, "Behavior of message receive buffer; 0=drop oldest (default), 1=drop incoming");
-  CONFIG_ADD_VAR(ACTIVE_MESSAGES_ENABLED, int, 0, "Enable active messages. \n0 = off\n2 = message creates parallel thread");
+  CONFIG_ADD_VAR(ACTIVE_MESSAGES_ENABLED, int, 0, "Enable active messages. \n0 = off\n2 = message creates parallel thread\n3 = messages contain only a single int");
   CONFIG_ADD_VAR(CHECK_TASK_ON_SEND, bool, 1, "0: Don't check tasks on send, 1: Check tasks on send (default)");
 
   // -------- Neural Networking config options --------

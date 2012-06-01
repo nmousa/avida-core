@@ -379,6 +379,8 @@ bool cPopulationCell::HasOutputAV(cOrganism* org)
   // If org can talk to itself, any avatar in the cell works
   if (m_world->GetConfig().SELF_COMMUNICATION.Get()) return true;
 
+  if (m_can_input) return true;
+
   // If no self-messaging, is there an output avatar for another organism in the cell
   for (int i = 0; i < GetNumAVOutputs(); i++) {
     if (m_av_outputs[i].first != org) {

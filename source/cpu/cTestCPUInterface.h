@@ -235,6 +235,10 @@ public:
   const tArray<double>& GetAVFacedResources(cAvidaContext& ctx, int av_num = 0);
   void UpdateAVResources(cAvidaContext& ctx, const tArray<double>& res_change, int av_num = 0);
   tArray<int> NeuronLookAhead(cAvidaContext& ctx, int av_num, int distance_sought);
+  tArray<int> NeuronLookLostMessages(cAvidaContext& ctx, int av_num);
+  tArray<int> NeuronLookEmptyOutputs(cAvidaContext& ctx, int av_num);
+  tArray<int> NeuronLookOutputs(cAvidaContext& ctx, int av_num);
+  tArray<int> NeuronLookUnconnectedOutputs(cAvidaContext& ctx, int av_num);
   
   void BeginSleep() { ; }
   void EndSleep() { ; }
