@@ -1679,6 +1679,7 @@ bool cHardwareExperimental::InterruptThread(int interruptType)
           if (search_head.GetInst() == end_inst) {
             break;
           }
+          search_head++;
         }
       }
     }

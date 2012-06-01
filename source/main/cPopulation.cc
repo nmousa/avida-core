@@ -2974,6 +2974,7 @@ int cPopulation::DemeSelectInjectionCell(cDeme& deme, int sequence) {
       tArray<int> cell_array = cStringUtil::ReturnArray(cells);
       assert(sequence < cell_array.GetSize());
       cellid = deme.GetCellID(cell_array[sequence]);
+      break;
     }
     default: {
       assert(false); // Shouldn't ever reach here.
