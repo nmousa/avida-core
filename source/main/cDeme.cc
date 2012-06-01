@@ -1271,7 +1271,8 @@ int cDeme::GetNextDemeInput(cAvidaContext& ctx, int deme_cell_id)
           }
   case 1: // parallel input
   case 2: // parallel input with environmental messaging, restimulates
-  case 4: { // parallel input with environmental messaging, scheduled, multiple outputs allowed
+  case 4: // parallel input with environmental messaging, scheduled, multiple outputs allowed
+  case 5: { // parallel input with environmental messaging, scheduled, only single output allowed
     int row = deme_cell_id / GetWidth();
     input = m_inputs[row % m_inputs.GetSize()];
     break;
