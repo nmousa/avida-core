@@ -36,6 +36,7 @@
 #include "cOrgMovementPredicate.h"
 #include "cDemePredicate.h"
 #include "cReactionResult.h"
+#include "cStateGrid.h"
 #include "cTaskState.h"
 
 #include <cmath>
@@ -186,6 +187,8 @@ cDeme& cDeme::operator=(const cDeme& in_deme)
   m_shannon_matrix                    = in_deme.m_shannon_matrix;
   m_num_active                        = in_deme.m_num_active;
   m_num_reproductives                 = in_deme.m_num_reproductives;
+  m_cur_sg                            = in_deme.m_cur_sg;
+  m_ext_mem                           = in_deme.m_ext_mem;
 
   tList<cTaskState*> hash_values;
   tList<void*> hash_keys;
@@ -261,6 +264,9 @@ void cDeme::Setup(int id, const tArray<int> & in_cells, int in_width, cWorld* wo
   } else {
     m_cur_merit = 1.0;
   }
+
+  m_cur_sg = m_world->GetRandom().GetUInt(m_world->GetEnvironment().GetNumStateGrids());
+  SetupExtendedMemory();
   
   total_energy_donated = 0.0;
   total_energy_received = 0.0;
@@ -535,6 +541,9 @@ void cDeme::Reset(cAvidaContext& ctx, bool resetResources, double deme_energy)
   } else {
     m_cur_merit = 1.0;
   }
+
+  m_cur_sg = m_world->GetRandom().GetUInt(m_world->GetEnvironment().GetNumStateGrids());
+  SetupExtendedMemory();
 
   // Reset Task States
   tArray<cTaskState*> task_states(0);
@@ -1420,11 +1429,10 @@ int cDeme::DoDemeOutput(cAvidaContext& ctx, int value, double cell_bonus)
   // Needed to setup taskctx, but will not actually be used
   tList<tBuffer<int> > other_input_list;
   tList<tBuffer<int> > other_output_list;
-  tSmartArray<int> ext_mem;
 
   // Setup the task context
   cTaskContext taskctx(NULL, m_input_buf, m_output_buf, other_input_list, other_output_list,
-                       ext_mem, false, NULL, this);
+                       m_ext_mem, false, NULL, this);
   taskctx.SetTaskStates(&m_task_states);
 
   const cEnvironment& env = m_world->GetEnvironment();
@@ -1550,11 +1558,10 @@ int cDeme::CheckForTask(cAvidaContext& ctx, int value)
   // Needed to setup taskctx
   tList<tBuffer<int> > other_input_list;
   tList<tBuffer<int> > other_output_list;
-  tSmartArray<int> ext_mem;
 
   // Setup the task context
   cTaskContext taskctx(NULL, m_input_buf, output_buf, other_input_list, other_output_list,
-                       ext_mem, false, NULL, this);
+                       m_ext_mem, false, NULL, this);
   taskctx.SetTaskStates(&m_task_states);
 
   const cEnvironment& env = m_world->GetEnvironment();
@@ -1612,6 +1619,94 @@ cMerit cDeme::CalcCurMerit()
   }
   cur_merit = merit_base * m_cur_bonus;
   return cur_merit;
+}
+
+int cDeme::GetStateGridID() const
+{
+  return m_cur_sg;
+}
+
+void cDeme::SetupExtendedMemory()
+{
+  const cStateGrid& sg = m_world->GetEnvironment().GetStateGrid(m_cur_sg);
+
+  tArray<int> sg_state(3 + sg.GetNumStates(), 0);
+
+  sg_state[0] = sg.GetInitialX();
+  sg_state[1] = sg.GetInitialY();
+  sg_state[2] = sg.GetInitialFacing();
+
+  m_ext_mem = sg_state;
+}
+
+int cDeme::SGSenseState()
+{
+  const cStateGrid& sg = m_world->GetEnvironment().GetStateGrid(m_cur_sg);
+  return sg.SenseStateAt(m_ext_mem[0], m_ext_mem[1]);
+}
+
+void cDeme::SGRotateX(int rotate)
+{
+  rotate %= 8;
+  rotate += 8;
+  m_ext_mem[2] = (m_ext_mem[2] + rotate) % 8;
+}
+
+void cDeme::SGMove()
+{
+  const cStateGrid& sg = m_world->GetEnvironment().GetStateGrid(m_cur_sg);
+
+  int& x = m_ext_mem[0];
+  int& y = m_ext_mem[1];
+  const int facing = m_ext_mem[2];
+
+  // State grid is treated as a 2-dimensional toroidal grid with size [0, width) and [0, height)
+  switch (facing) {
+  case 0: // N
+    if (++y == sg.GetHeight()) y = 0;
+    break;
+
+  case 1: // NE
+    if (++x == sg.GetWidth()) x = 0;
+    if (++y == sg.GetHeight()) y = 0;
+    break;
+
+  case 2: // E
+    if (++x == sg.GetWidth()) x = 0;
+    break;
+
+  case 3: // SE
+    if (++x == sg.GetWidth()) x = 0;
+    if (--y == -1) y = sg.GetHeight() - 1;
+    break;
+
+  case 4: // S
+    if (--y == -1) y = sg.GetHeight() - 1;
+    break;
+
+  case 5: // SW
+    if (--x == -1) x = sg.GetWidth() - 1;
+    if (--y == -1) y = sg.GetHeight() - 1;
+    break;
+
+  case 6: // W
+    if (--x == -1) x = sg.GetWidth() - 1;
+    break;
+
+  case 7: // NW
+    if (--x == -1) x = sg.GetWidth() - 1;
+    if (++y == sg.GetHeight()) y = 0;
+    break;
+
+  default:
+    assert(facing >= 0 && facing <= 7);
+  }
+
+  // Increment state observed count
+  m_ext_mem[3 + sg.GetStateAt(x, y)]++;
+
+  // Save this location in the movement history
+  m_ext_mem.Push(sg.GetIDFor(x, y));
 }
 
 // Returns the minimum number of times any of the reactions were performed

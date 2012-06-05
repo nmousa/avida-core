@@ -2950,6 +2950,32 @@ tArray<int> cPopulationInterface::NeuronLookUnconnectedOutputs(cAvidaContext& ct
   return return_values;
 }
 
+bool cPopulationInterface::GetCanDemeInput()
+{
+  return m_world->GetPopulation().GetCell(m_cell_id).GetCanInput();
+}
+
+bool cPopulationInterface::GetCanDemeOutput()
+{
+  double output_bonus = m_world->GetPopulation().GetCell(m_cell_id).GetOutputBonus();
+  if (output_bonus > 0.0) return true;
+  else return false;
+}
+
+int cPopulationInterface::SenseDemeSG()
+{
+  return GetDeme()->SGSenseState();
+}
+
+void cPopulationInterface::RotateXDemeSG(int rotate)
+{
+  GetDeme()->SGRotateX(rotate);
+}
+
+void cPopulationInterface::MoveDemeSG()
+{
+  GetDeme()->SGMove();
+}
 
 void cPopulationInterface::BeginSleep()
 {

@@ -3330,6 +3330,27 @@ public:
   }
 };
 
+class cActionCompeteDemesByMeritWithTasks : public cAbstractCompeteDemes
+{
+public:
+  cActionCompeteDemesByMeritWithTasks(cWorld* world, const cString& args, Feedback& feedback) : cAbstractCompeteDemes(world, args, feedback)
+  {
+  }
+
+  ~cActionCompeteDemesByMeritWithTasks() {}
+
+  static const cString GetDescription() { return "Compete demes according to each deme's merit, first triggering any tasks"; }
+
+  virtual double Fitness(cDeme& deme, cAvidaContext& ctx)
+  {
+    deme.DoDemeOutput(ctx, 0, 1.0);
+    deme.UpdateCurMerit();
+
+    double fitness = deme.GetCurMerit().GetDouble();
+    return fitness;
+  }
+};
+
 class cActionCompeteDemesByNeuralMessaging : public cAbstractCompeteDemes
 {
 public:
@@ -5619,6 +5640,7 @@ void RegisterPopulationActions(cActionLibrary* action_lib)
   action_lib->Register<cActionCompeteDemesByTaskCountAndEfficiency>("CompeteDemesByTaskCountAndEfficiency");
   action_lib->Register<cActionCompeteDemesByEnergyDistribution>("CompeteDemesByEnergyDistribution");
   action_lib->Register<cActionCompeteDemesByMerit>("CompeteDemesByMerit");
+  action_lib->Register<cActionCompeteDemesByMeritWithTasks>("CompeteDemesByMeritWithTasks");
   action_lib->Register<cActionCompeteDemesByNeuralMessaging>("CompeteDemesByNeuralMessaging");
 
   /* deme predicate*/

@@ -239,6 +239,13 @@ public:
   tArray<int> NeuronLookEmptyOutputs(cAvidaContext& ctx, int av_num);
   tArray<int> NeuronLookOutputs(cAvidaContext& ctx, int av_num);
   tArray<int> NeuronLookUnconnectedOutputs(cAvidaContext& ctx, int av_num);
+
+  bool GetCanDemeInput() { return false; }
+  bool GetCanDemeOutput() { return false; }
+
+  int SenseDemeSG() { return -1; }
+  void RotateXDemeSG(int rotate) { ; }
+  void MoveDemeSG() { ; }
   
   void BeginSleep() { ; }
   void EndSleep() { ; }

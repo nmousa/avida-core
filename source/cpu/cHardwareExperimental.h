@@ -301,6 +301,7 @@ public:
   
   // interrupt current thread
   bool InterruptThread(int interruptType);
+  void PlaceNextMessage(cAvidaContext& ctx);
   int GetThreadMessageTriggerType(int _index) { return -1; }
   
   // --------  Parasite Stuff  --------
@@ -579,6 +580,10 @@ private:
   bool Inst_NeuronLookOutputs(cAvidaContext& ctx);
   bool Inst_NeuronLookUnconnectedOutputs(cAvidaContext& ctx);
   bool Inst_GetAVNum(cAvidaContext& ctx);
+  bool Inst_Deme_SGMove(cAvidaContext& ctx);
+  bool Inst_Deme_SGRotateL(cAvidaContext& ctx);
+  bool Inst_Deme_SGRotateR(cAvidaContext& ctx);
+  bool Inst_Deme_SGSense(cAvidaContext& ctx);
   
   // Resource and Topography Sensing
   bool Inst_SenseResourceID(cAvidaContext& ctx); 

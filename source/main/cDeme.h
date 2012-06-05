@@ -422,6 +422,17 @@ public:
   const tArray<int>& GetTaskCount() const { return m_task_count; }
   const tArray<int>& GetReactionCount() const { return m_reaction_count; }
 
+  // -------- Deme State Grid --------
+private:
+  int m_cur_sg;
+  tSmartArray<int> m_ext_mem;
+public:
+  int GetStateGridID() const;
+  void SetupExtendedMemory();
+  int SGSenseState();
+  void SGRotateX(int rotate);
+  void SGMove();
+
 
 	// --- Division of Labor --- //
 public: 	

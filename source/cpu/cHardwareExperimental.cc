@@ -312,6 +312,11 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("neuron-look-outputs", &cHardwareExperimental::Inst_NeuronLookOutputs, nInstFlag::STALL),
     tInstLibEntry<tMethod>("neuron-look-unconnected-outputs", &cHardwareExperimental::Inst_NeuronLookUnconnectedOutputs, nInstFlag::STALL),
     tInstLibEntry<tMethod>("get-AV-num", &cHardwareExperimental::Inst_GetAVNum, nInstFlag::STALL),
+
+    tInstLibEntry<tMethod>("deme-sg-move", &cHardwareExperimental::Inst_Deme_SGMove, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("deme-sg-rotate-l", &cHardwareExperimental::Inst_Deme_SGRotateL, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("deme-sg-rotate-r", &cHardwareExperimental::Inst_Deme_SGRotateR, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("deme-sg-sense", &cHardwareExperimental::Inst_Deme_SGSense, nInstFlag::STALL),
     
     // Resource and Topography Sensing
     tInstLibEntry<tMethod>("sense-resource-id", &cHardwareExperimental::Inst_SenseResourceID, nInstFlag::STALL), 
@@ -1619,29 +1624,23 @@ bool cHardwareExperimental::InterruptThread(int interruptType)
 
   const cInstruction label_inst = GetInstSet().GetInst(handlerHeadInstructionString);
 
+  // Message waiting
   if (interruptType == MSG_INTERRUPT && m_world->GetConfig().NEURAL_NETWORKING.Get()) {
     for (int i = 0; i < m_threads.GetSize(); i++) {
       if (m_threads[i].m_msg_waiting == interruptMsgType) {
-        std::pair<bool, cOrgMessage> retrieved = m_organism->PeekAtNextMessage();
-        if (retrieved.first) {
-          int old_thread = m_cur_thread;
-          m_cur_thread = i;
-          const int label_reg = FindModifiedRegister(rBX);
-          const int data_reg = FindNextRegister(label_reg);
-          if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3) {
-            setInternalValue(label_reg, retrieved.second.GetLabel(), true);
-          } else {
-            setInternalValue(label_reg, retrieved.second.GetLabel(), true);
-            setInternalValue(data_reg, retrieved.second.GetData(), true);
-          }
-          m_cur_thread = old_thread;
-          m_threads[i].active = true;
-          m_threads[i].m_msg_waiting = -1;
-        }
+        int old_thread = m_cur_thread;
+        m_cur_thread = i;
+        m_threads[i].active = true;
+        m_threads[i].m_msg_waiting = -1;
+        IP().Retreat();
+        PlaceNextMessage(m_world->GetDefaultContext());
+        IP().Advance();
+        m_cur_thread = old_thread;
       }
     }
   }
 
+  // Catch messaging
   if (interruptType == MSG_INTERRUPT && m_world->GetConfig().NEURAL_NETWORKING.Get()) {
     cString catchInstructionString;
     catchInstructionString.Set("catch-msg-type%d", interruptMsgType);
@@ -1659,20 +1658,12 @@ bool cHardwareExperimental::InterruptThread(int interruptType)
           if (search_head.GetInst() == catch_inst) {
             search_head++;
             IP(i).Set(search_head);
-            std::pair<bool, cOrgMessage> retrieved = m_organism->PeekAtNextMessage();
-            if (retrieved.first) {
-              int old_thread = m_cur_thread;
-              m_cur_thread = i;
-              const int label_reg = FindModifiedRegister(rBX);
-              const int data_reg = FindNextRegister(label_reg);
-              if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3) {
-                setInternalValue(label_reg, retrieved.second.GetLabel(), true);
-              } else {
-                setInternalValue(label_reg, retrieved.second.GetLabel(), true);
-                setInternalValue(data_reg, retrieved.second.GetData(), true);
-              }
-              m_cur_thread = old_thread;
-            }
+            int old_thread = m_cur_thread;
+            m_cur_thread = i;
+            IP().Retreat();
+            PlaceNextMessage(m_world->GetDefaultContext());
+            IP().Advance();
+            m_cur_thread = old_thread;
             IP(i).Set(start);
             break;
           }
@@ -1744,6 +1735,22 @@ bool cHardwareExperimental::InterruptThread(int interruptType)
     return true;
   }
   return false;
+}
+
+void cHardwareExperimental::PlaceNextMessage(cAvidaContext& ctx)
+{
+  std::pair<bool, cOrgMessage> retrieved = m_organism->PeekAtNextMessage();
+  if (retrieved.first) {
+    const int label_reg = FindModifiedRegister(rBX);
+    const int data_reg = FindNextRegister(label_reg);
+
+    if (m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 3) {
+      setInternalValue(label_reg, retrieved.second.GetLabel(), true);
+    } else {
+      setInternalValue(label_reg, retrieved.second.GetLabel(), true);
+      setInternalValue(data_reg, retrieved.second.GetData(), true);
+    }
+  }
 }
 
 bool cHardwareExperimental::Inst_ExitThread(cAvidaContext& ctx)
@@ -3988,6 +3995,40 @@ bool cHardwareExperimental::Inst_GetAVNum(cAvidaContext& ctx)
     return true;
   }
   return false;
+}
+
+bool cHardwareExperimental::Inst_Deme_SGSense(cAvidaContext& ctx)
+{
+  if (m_organism->GetOrgInterface().GetCanDemeInput()) {
+    const int sg_state = m_organism->GetOrgInterface().SenseDemeSG();
+    const int reg_used = FindModifiedRegister(rBX);
+    setInternalValue(reg_used, sg_state, true);
+    return true;
+  } else return false;
+}
+
+bool cHardwareExperimental::Inst_Deme_SGRotateL(cAvidaContext& ctx)
+{
+  if (m_organism->GetOrgInterface().GetCanDemeOutput()) {
+    m_organism->GetOrgInterface().RotateXDemeSG(-1);
+    return true;
+  } else return false;
+}
+
+bool cHardwareExperimental::Inst_Deme_SGRotateR(cAvidaContext& ctx)
+{
+  if (m_organism->GetOrgInterface().GetCanDemeOutput()) {
+    m_organism->GetOrgInterface().RotateXDemeSG(1);
+    return true;
+  } else return false;
+}
+
+bool cHardwareExperimental::Inst_Deme_SGMove(cAvidaContext& ctx)
+{
+  if (m_organism->GetOrgInterface().GetCanDemeOutput()) {
+    m_organism->GetOrgInterface().MoveDemeSG();
+    return true;
+  } else return false;
 }
 
 

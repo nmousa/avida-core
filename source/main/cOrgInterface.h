@@ -242,6 +242,13 @@ public:
   virtual tArray<int> NeuronLookOutputs(cAvidaContext& ctx, int av_num) = 0;
   virtual tArray<int> NeuronLookUnconnectedOutputs(cAvidaContext& ctx, int av_num) = 0;
 
+  virtual bool GetCanDemeInput() = 0;
+  virtual bool GetCanDemeOutput() = 0;
+
+  virtual int SenseDemeSG() = 0;
+  virtual void RotateXDemeSG(int rotate) = 0;
+  virtual void MoveDemeSG() = 0;
+
   virtual void BeginSleep() = 0;
   virtual void EndSleep() = 0;
 };
