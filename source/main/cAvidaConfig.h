@@ -587,7 +587,7 @@ public:
   CONFIG_ADD_VAR(MESSAGE_SEND_BUFFER_SIZE, int, 1, "Size of message send buffer (stores messages that were sent)\nTASKS NOT CHECKED ON 0!\n-1=inf, default=1.");
   CONFIG_ADD_VAR(MESSAGE_RECV_BUFFER_SIZE, int, 8, "Size of message receive buffer (stores messages that are received); -1=inf, default=8.");
   CONFIG_ADD_VAR(MESSAGE_RECV_BUFFER_BEHAVIOR, bool, 0, "Behavior of message receive buffer; 0=drop oldest (default), 1=drop incoming");
-  CONFIG_ADD_VAR(ACTIVE_MESSAGES_ENABLED, int, 0, "Enable active messages. \n0 = off\n2 = message creates parallel thread\n3 = messages contain only a single int");
+  CONFIG_ADD_VAR(ACTIVE_MESSAGES_ENABLED, int, 0, "Enable active messages. \n0 = off\n2 = message creates parallel thread\n3 = messages contain only a single int\n4 = 3+ check for catch-msg-typeX");
   CONFIG_ADD_VAR(CHECK_TASK_ON_SEND, bool, 1, "0: Don't check tasks on send, 1: Check tasks on send (default)");
 
   // -------- Neural Networking config options --------

@@ -1621,9 +1621,9 @@ cMerit cDeme::CalcCurMerit()
   return cur_merit;
 }
 
-int cDeme::GetStateGridID() const
+const cStateGrid& cDeme::GetStateGrid()
 {
-  return m_cur_sg;
+  return m_world->GetEnvironment().GetStateGrid(m_cur_sg);
 }
 
 void cDeme::SetupExtendedMemory()

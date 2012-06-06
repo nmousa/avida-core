@@ -1643,7 +1643,7 @@ bool cHardwareExperimental::InterruptThread(int interruptType)
   }
 
   // Catch messaging
-  if (interruptType == MSG_INTERRUPT && m_world->GetConfig().NEURAL_NETWORKING.Get()) {
+  if (interruptType == MSG_INTERRUPT && m_world->GetConfig().NEURAL_NETWORKING.Get() && m_world->GetConfig().ACTIVE_MESSAGES_ENABLED.Get() == 4) {
     cString catchInstructionString;
     catchInstructionString.Set("catch-msg-type%d", interruptMsgType);
     const cInstruction catch_inst = GetInstSet().GetInst(catchInstructionString);

@@ -427,7 +427,7 @@ private:
   int m_cur_sg;
   tSmartArray<int> m_ext_mem;
 public:
-  int GetStateGridID() const;
+  const cStateGrid& GetStateGrid();
   void SetupExtendedMemory();
   int SGSenseState();
   void SGRotateX(int rotate);

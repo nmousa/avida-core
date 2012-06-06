@@ -86,6 +86,7 @@ public:
   }
   
   inline cOrganism* GetOrganism() { return m_organism; }
+  inline cDeme* GetDeme() { return m_deme; }
   inline const tBuffer<int>& GetInputBuffer() { return m_input_buffer; }
   inline const tBuffer<int>& GetOutputBuffer() { return m_output_buffer; }
   inline const tList<tBuffer<int> >& GetNeighborhoodInputBuffers() { return m_other_input_buffers; }

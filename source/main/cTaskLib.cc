@@ -3249,39 +3249,70 @@ void cTaskLib::Load_SGPathTraversal(const cString& name, const cString& argstr, 
 double cTaskLib::Task_SGPathTraversal(cTaskContext& ctx) const
 {
   const cArgContainer& args = ctx.GetTaskEntry()->GetArguments();
-  const cStateGrid& sg = ctx.GetOrganism()->GetStateGrid();
+  if (!ctx.GetDeme()) {
+    const cStateGrid& sg = ctx.GetOrganism()->GetStateGrid();
 
-  if (sg.GetName() != args.GetString(0)) return 0.0;
+    if (sg.GetName() != args.GetString(0)) return 0.0;
 
-  int state = sg.GetStateID(args.GetString(1));
-  if (state < 0) return 0.0;
-  
-  const tSmartArray<int>& ext_mem = ctx.GetExtendedMemory();
-  
-  // Build and sort history
-  const int history_offset = 3 + sg.GetNumStates();
-  tArray<int> history(ext_mem.GetSize() - history_offset);
-  for (int i = 0; i < history.GetSize(); i++) history[i] = ext_mem[i + history_offset];
-  tArrayUtils::QSort(history);
-  
-  // Calculate how many unique non-poison cells have been touched
-  int traversed = 0;
-  int last = -1;
-  for (int i = 0; i < history.GetSize(); i++) {
-    if (history[i] == last) continue;
-    last = history[i];
-    if (sg.GetStateAt(last) != state) traversed++;
+    int state = sg.GetStateID(args.GetString(1));
+    if (state < 0) return 0.0;
+
+    const tSmartArray<int>& ext_mem = ctx.GetExtendedMemory();
+
+    // Build and sort history
+    const int history_offset = 3 + sg.GetNumStates();
+    tArray<int> history(ext_mem.GetSize() - history_offset);
+    for (int i = 0; i < history.GetSize(); i++) history[i] = ext_mem[i + history_offset];
+    tArrayUtils::QSort(history);
+
+    // Calculate how many unique non-poison cells have been touched
+    int traversed = 0;
+    int last = -1;
+    for (int i = 0; i < history.GetSize(); i++) {
+      if (history[i] == last) continue;
+      last = history[i];
+      if (sg.GetStateAt(last) != state) traversed++;
+    }
+
+    traversed -= ext_mem[3 + state];
+
+    double quality = 0.0;
+
+    //  double halflife = -1.0 * fabs(args.GetDouble(0));
+    //  quality = pow(args.GetDouble(1), (double)(args.GetInt(0) - ((traversed >= 0) ? traversed : 0)) / halflife);
+    quality = (double)((traversed >= 0) ? traversed : 0) / (double)args.GetInt(0);
+
+    return quality;
+  } else {
+    const cStateGrid& sg = ctx.GetDeme()->GetStateGrid();
+
+    if (sg.GetName() != args.GetString(0)) return 0.0;
+
+    int state = sg.GetStateID(args.GetString(1));
+    if (state < 0) return 0.0;
+
+    const tSmartArray<int>& ext_mem = ctx.GetExtendedMemory();
+
+    // Build and sort history
+    const int history_offset = 3 + sg.GetNumStates();
+    tArray<int> history(ext_mem.GetSize() - history_offset);
+    for (int i = 0; i < history.GetSize(); i++) history[i] = ext_mem[i + history_offset];
+    tArrayUtils::QSort(history);
+
+    // Calculate how many unique non-poison cells have been touched
+    int traversed = 0;
+    int last = -1;
+    for (int i = 0; i < history.GetSize(); i++) {
+      if (history[i] == last) continue;
+      last = history[i];
+      if (sg.GetStateAt(last) != state) traversed++;
+    }
+
+    traversed -= ext_mem[3 + state];
+
+    double quality = (double)((traversed >= 0) ? traversed : 0) / (double)args.GetInt(0);
+    return quality;
   }
-  
-  traversed -= ext_mem[3 + state];
-  
-  double quality = 0.0;
-  
-//  double halflife = -1.0 * fabs(args.GetDouble(0));
-//  quality = pow(args.GetDouble(1), (double)(args.GetInt(0) - ((traversed >= 0) ? traversed : 0)) / halflife);
-  quality = (double)((traversed >= 0) ? traversed : 0) / (double)args.GetInt(0);
-  
-  return quality;
 }  
 
 
