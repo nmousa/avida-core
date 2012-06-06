@@ -312,6 +312,7 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("neuron-look-outputs", &cHardwareExperimental::Inst_NeuronLookOutputs, nInstFlag::STALL),
     tInstLibEntry<tMethod>("neuron-look-unconnected-outputs", &cHardwareExperimental::Inst_NeuronLookUnconnectedOutputs, nInstFlag::STALL),
     tInstLibEntry<tMethod>("get-AV-num", &cHardwareExperimental::Inst_GetAVNum, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("remove-AV", &cHardwareExperimental::Inst_RemoveAV, nInstFlag::STALL),
 
     tInstLibEntry<tMethod>("deme-sg-move", &cHardwareExperimental::Inst_Deme_SGMove, nInstFlag::STALL),
     tInstLibEntry<tMethod>("deme-sg-rotate-l", &cHardwareExperimental::Inst_Deme_SGRotateL, nInstFlag::STALL),
@@ -4085,6 +4086,25 @@ bool cHardwareExperimental::Inst_Deme_SGMove(cAvidaContext& ctx)
     m_organism->GetOrgInterface().MoveDemeSG();
     return true;
   } else return false;
+}
+
+bool cHardwareExperimental::Inst_RemoveAV(cAvidaContext& ctx)
+{
+  if (!m_inst_set->IsNop(getIP().GetNextInst())) return false;
+
+  const int av_to_remove = FindModifiedRegister(rBX);
+
+  int facing;
+  if (av_to_remove == rAX) facing = 0;
+  if (av_to_remove == rBX) facing = 1;
+  if (av_to_remove == rCX) facing = 2;
+  if (av_to_remove == rDX) facing = 3;
+  if (av_to_remove == rEX) facing = 4;
+  if (av_to_remove == rFX) facing = 5;
+  if (av_to_remove == rGX) facing = 6;
+  if (av_to_remove == rHX) facing = 7;
+
+  return m_organism->GetOrgInterface().RemoveAV(facing);
 }
 
 

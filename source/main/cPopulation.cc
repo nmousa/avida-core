@@ -894,7 +894,7 @@ bool cPopulation::ActivateOrganism(cAvidaContext& ctx, cOrganism* in_organism, c
   }
   
   // If neural networking, add input and output avatars..
-  if (m_world->GetConfig().NEURAL_NETWORKING.Get()) {
+  if (m_world->GetConfig().NEURAL_NETWORKING.Get() == 1) {
     // Add input avatars
     int num_inputs = m_world->GetConfig().NUM_INPUT_AV.Get();
     for (int i = 0; i < num_inputs; i++) {
@@ -906,6 +906,15 @@ bool cPopulation::ActivateOrganism(cAvidaContext& ctx, cOrganism* in_organism, c
         in_organism->GetHardware().NewAvatarThread(i);
       }
     }
+    // Add output avatar
+    int facing;
+    if (m_world->GetConfig().AV_FACED_DIR.Get() == -1) facing = m_world->GetRandom().GetUInt(8);
+    else facing = m_world->GetConfig().AV_FACED_DIR.Get();
+    in_organism->GetOrgInterface().AddAV(target_cell.GetID(), facing, false, true);
+  } else if (m_world->GetConfig().NEURAL_NETWORKING.Get() == 2) {
+    // Add input avatars to all of the surrounding cells
+    in_organism->GetOrgInterface().AddInputAvatarsToSurrounding(target_cell.GetID());
+
     // Add output avatar
     int facing;
     if (m_world->GetConfig().AV_FACED_DIR.Get() == -1) facing = m_world->GetRandom().GetUInt(8);

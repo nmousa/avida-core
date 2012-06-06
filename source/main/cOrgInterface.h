@@ -208,8 +208,10 @@ public:
   virtual bool FacedHasPreyAV(int av_num = 0) = 0;
   virtual void AddAV(int av_cell_id, int av_facing, bool input, bool output) = 0;
   virtual void AddPredPreyAV(int av_cell_id) = 0;
+  virtual void AddInputAvatarsToSurrounding(int cell_id) = 0;
   virtual void SwitchPredPrey(int av_num = 0) = 0;
   virtual void RemoveAllAV() = 0;
+  virtual bool RemoveAV(int facing) = 0;
   virtual int GetAVFacing(int av_num = 0) = 0;
   virtual int GetAVCellID(int av_num = 0) = 0;
   virtual int GetAVFacedCellID(int av_num = 0) = 0;

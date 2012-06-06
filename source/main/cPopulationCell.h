@@ -164,6 +164,7 @@ public:
   int AddOutputAV(cOrganism* org, int av_num = 0);
   void RemoveInputAV(cOrganism* org, int av_index);
   void RemoveOutputAV(cOrganism* org, int av_index);
+  void ChangeInputAVIndex(int av_index, int av_num);
   inline bool HasInputAV() const { return m_av_inputs.GetSize() > 0; }
   inline bool HasOutputAV() const { return m_av_outputs.GetSize() > 0; }
   inline bool HasAV() const { return (m_av_inputs.GetSize() > 0 || m_av_outputs.GetSize() > 0); }

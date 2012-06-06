@@ -206,8 +206,10 @@ public:
   bool FacedHasPreyAV(int av_num = 0) { return false; }
   void AddAV(int av_cell_id, int av_facing, bool input, bool output) { ; }
   void AddPredPreyAV(int av_cell_id) { ; }
+  void AddInputAvatarsToSurrounding(int cell_id) { ; }
   void SwitchPredPrey(int av_num = 0) { ; }
   void RemoveAllAV() { ; }
+  bool RemoveAV(int facing) { return false; }
   int GetAVFacing(int av_num = 0) { return 0; }
   int GetAVCellID(int av_num = 0) { return -1; }
   int GetAVFacedCellID(int av_num = 0) { return -1; }

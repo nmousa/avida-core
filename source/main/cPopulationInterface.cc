@@ -1669,6 +1669,37 @@ void cPopulationInterface::AddPredPreyAV(int av_cell_id)
   SetAVFacedCellID(GetNumAV() - 1);
 }
 
+void cPopulationInterface::AddInputAvatarsToSurrounding(int cell_id)
+{
+  if (m_world->GetConfig().WORLD_GEOMETRY.Get() != 1) m_world->GetDriver().RaiseFatalException(-1, "Not valid WORLD_GEOMETRY for Avatar Trimming, must be bounded.");
+
+  const int x_size = m_world->GetConfig().WORLD_X.Get();
+  const int y_size = m_world->GetConfig().WORLD_Y.Get() / m_world->GetConfig().NUM_DEMES.Get();
+  const int deme_size = x_size * y_size;
+  int deme_cell = cell_id % deme_size;
+  int x = deme_cell % x_size;
+  int y = deme_cell / x_size;
+
+  const int range = 1;
+  for (int y_offset = -range; y_offset <= range; y_offset++) {
+    int tar_y = y + y_offset;
+    if (tar_y >= 0 && tar_y < y_size) {
+      for (int x_offset = -range; x_offset <= range; x_offset++) {
+        int tar_x = x + x_offset;
+        if (tar_x >= 0 && tar_x < x_size) {
+          if (tar_x != x && tar_y != y) {
+            int tar_cell_id = (tar_x + tar_y * x_size) + m_deme_id * deme_size;
+            int facing;
+            if (m_world->GetConfig().AV_FACED_DIR.Get() == -1) facing = m_world->GetRandom().GetUInt(8);
+            else facing = m_world->GetConfig().AV_FACED_DIR.Get();
+            AddAV(tar_cell_id, facing, true, false);
+          }
+        }
+      }
+    }
+  }
+}
+
 // Switches the avatar from being a predator to a prey avatar or vice-versa
 void cPopulationInterface::SwitchPredPrey(int av_num)
 {
@@ -1709,6 +1740,86 @@ void cPopulationInterface::RemoveAllAV()
       }
     }
   }
+}
+
+bool cPopulationInterface::RemoveAV(int facing)
+{
+  const int x_size = m_world->GetConfig().WORLD_X.Get();
+  const int deme_size = m_world->GetConfig().WORLD_Y.Get() * x_size;
+  const int deme_cell_id = m_cell_id % deme_size;
+
+  // Using the facing from the organism find the target cell
+  int tar_deme_cell_id;
+  switch(facing) {
+  case 0: {
+    tar_deme_cell_id = deme_cell_id - x_size;
+    break;
+          }
+  case 1: {
+    tar_deme_cell_id = deme_cell_id - x_size + 1;
+    break;
+          }
+  case 2: {
+    tar_deme_cell_id = deme_cell_id + 1;
+    break;
+          }
+  case 3: {
+    tar_deme_cell_id = deme_cell_id + x_size + 1;
+    break;
+          }
+  case 4: {
+    tar_deme_cell_id = deme_cell_id + x_size;
+    break;
+          }
+  case 5: {
+    tar_deme_cell_id = deme_cell_id + x_size - 1;
+    break;
+          }
+  case 6: {
+    tar_deme_cell_id = deme_cell_id - 1;
+    break;
+          }
+  case 7: {
+    tar_deme_cell_id = deme_cell_id - x_size - 1;
+    break;
+          }
+  default: {
+    assert(facing >= 0 && facing < 8);
+    break;
+           }
+  }
+
+  if (tar_deme_cell_id < 0 || tar_deme_cell_id >= deme_size) return false;
+  // Convert to target deme cell to actuall target cell id
+  int tar_cell_id = m_deme_id * deme_size + tar_deme_cell_id;
+
+  // Find the avatar occupying the target 
+  int av_num = -1;
+  for (int i = 0; i < GetNumAV(); i++) {
+    if (m_avatars[i].av_cell_id == tar_cell_id) {
+      av_num = i;
+    }
+  }
+
+  // Doesn't have an avatar in the target cell
+  if (av_num == -1) return false;
+
+  int last_av = GetNumAV() - 1;
+  m_world->GetPopulation().GetCell(m_avatars[last_av].av_cell_id).ChangeInputAVIndex(m_avatars[last_av].av_cell_index, av_num);
+  m_avatars.Swap(av_num, last_av);
+  sIO_avatar tmpAV = m_avatars.Pop();
+  // Check that avatar is actually in a cell
+  if (tmpAV.av_cell_id >= 0) {
+    // If input avatar remove from the cell
+    if (tmpAV.av_input) {
+      m_world->GetPopulation().GetCell(tmpAV.av_cell_id).RemoveInputAV(GetOrganism(), tmpAV.av_cell_index);
+    }
+    // If output avatar remove from the cell
+    if (tmpAV.av_output) {
+      m_world->GetPopulation().GetCell(tmpAV.av_cell_id).RemoveOutputAV(GetOrganism(), tmpAV.av_cell_index);
+    }
+  }
+  return true;
 }
 
 // Returns the avatar's faced direction

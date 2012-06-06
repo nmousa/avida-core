@@ -592,7 +592,7 @@ public:
 
   // -------- Neural Networking config options --------
   CONFIG_ADD_GROUP(BRAINS_GROUP, "Neuron-brains based neural networking and communication");
-  CONFIG_ADD_VAR(NEURAL_NETWORKING, bool, 0, "Turns neural networking system on/off. \nRequires USE_AVATARS be turned on.");
+  CONFIG_ADD_VAR(NEURAL_NETWORKING, bool, 0, "Turns neural networking system on/off. \nRequires USE_AVATARS be turned on.\n2 = Avatar trimming");
   CONFIG_ADD_VAR(DEMES_IO_HANDLING, int, 0, "How is deme IO to be handled?\n0: serial input/output(default)\n1: parallel input/serial output\n2: parallel input/serial output checked on avatar messaging, restimulating\n3: serial input with environmental messaging, single message\n4: parallel input with environmental messaging, no-restimulating");
   CONFIG_ADD_VAR(DEMES_IO_FEEDBACK, int, 0, "Whether feedback is on/off for deme tasks, returning whether each output is a completed task to the cell data");
   CONFIG_ADD_VAR(SELF_COMMUNICATION, bool, 0, "Allows organisms to create self communication loops. \nAn organism's input avatars can receive messages from it's own output avatars.");
