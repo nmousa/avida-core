@@ -317,6 +317,8 @@ tInstLib<cHardwareExperimental::tMethod>* cHardwareExperimental::initInstLib(voi
     tInstLibEntry<tMethod>("deme-sg-rotate-l", &cHardwareExperimental::Inst_Deme_SGRotateL, nInstFlag::STALL),
     tInstLibEntry<tMethod>("deme-sg-rotate-r", &cHardwareExperimental::Inst_Deme_SGRotateR, nInstFlag::STALL),
     tInstLibEntry<tMethod>("deme-sg-sense", &cHardwareExperimental::Inst_Deme_SGSense, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("deme-sg-sense-split", &cHardwareExperimental::Inst_Deme_SGSenseSplit, nInstFlag::STALL),
+    tInstLibEntry<tMethod>("deme-sg-sense-split2", &cHardwareExperimental::Inst_Deme_SGSenseSplit2, nInstFlag::STALL),
     
     // Resource and Topography Sensing
     tInstLibEntry<tMethod>("sense-resource-id", &cHardwareExperimental::Inst_SenseResourceID, nInstFlag::STALL), 
@@ -4003,6 +4005,60 @@ bool cHardwareExperimental::Inst_Deme_SGSense(cAvidaContext& ctx)
     const int sg_state = m_organism->GetOrgInterface().SenseDemeSG();
     const int reg_used = FindModifiedRegister(rBX);
     setInternalValue(reg_used, sg_state, true);
+    return true;
+  } else return false;
+}
+
+bool cHardwareExperimental::Inst_Deme_SGSenseSplit(cAvidaContext& ctx)
+{
+  if (m_organism->GetOrgInterface().GetCanDemeInput()) {
+    const int sg_state = m_organism->GetOrgInterface().SenseDemeSG();
+    const int reg_facing = FindModifiedRegister(rBX);
+    const int reg_move = FindModifiedNextRegister(reg_facing);
+    int facing;
+    int move;
+    if (sg_state == 0) {
+      facing = 0;
+      move = 1;
+    } else if (sg_state == 2) {
+      facing = 1;
+      move = 0;
+    } else if (sg_state == 4) {
+      facing = -1;
+      move = 0;
+    } else {
+      facing = 0;
+      move = -1;
+    }
+    setInternalValue(reg_facing, facing, true);
+    setInternalValue(reg_move, move, true);
+    return true;
+  } else return false;
+}
+
+bool cHardwareExperimental::Inst_Deme_SGSenseSplit2(cAvidaContext& ctx)
+{
+  if (m_organism->GetOrgInterface().GetCanDemeInput()) {
+    const int sg_state = m_organism->GetOrgInterface().SenseDemeSG();
+    const int reg_facing = FindModifiedRegister(rBX);
+    const int reg_move = FindModifiedNextRegister(reg_facing);
+    int facing;
+    int move;
+    if (sg_state == 0) {
+      facing = 0;
+      move = 1;
+    } else if (sg_state == 2) {
+      facing = 1;
+      move = 1;
+    } else if (sg_state == 4) {
+      facing = -1;
+      move = 1;
+    } else {
+      facing = 0;
+      move = -1;
+    }
+    setInternalValue(reg_facing, facing, true);
+    setInternalValue(reg_move, move, true);
     return true;
   } else return false;
 }

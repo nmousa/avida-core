@@ -584,6 +584,8 @@ private:
   bool Inst_Deme_SGRotateL(cAvidaContext& ctx);
   bool Inst_Deme_SGRotateR(cAvidaContext& ctx);
   bool Inst_Deme_SGSense(cAvidaContext& ctx);
+  bool Inst_Deme_SGSenseSplit(cAvidaContext& ctx);
+  bool Inst_Deme_SGSenseSplit2(cAvidaContext& ctx);
   
   // Resource and Topography Sensing
   bool Inst_SenseResourceID(cAvidaContext& ctx); 
