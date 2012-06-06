@@ -1628,15 +1628,17 @@ const cStateGrid& cDeme::GetStateGrid()
 
 void cDeme::SetupExtendedMemory()
 {
-  const cStateGrid& sg = m_world->GetEnvironment().GetStateGrid(m_cur_sg);
+  if (m_world->GetEnvironment().GetNumStateGrids()) {
+    const cStateGrid& sg = m_world->GetEnvironment().GetStateGrid(m_cur_sg);
 
-  tArray<int> sg_state(3 + sg.GetNumStates(), 0);
+    tArray<int> sg_state(3 + sg.GetNumStates(), 0);
 
-  sg_state[0] = sg.GetInitialX();
-  sg_state[1] = sg.GetInitialY();
-  sg_state[2] = sg.GetInitialFacing();
+    sg_state[0] = sg.GetInitialX();
+    sg_state[1] = sg.GetInitialY();
+    sg_state[2] = sg.GetInitialFacing();
 
-  m_ext_mem = sg_state;
+    m_ext_mem = sg_state;
+  }
 }
 
 int cDeme::SGSenseState()
