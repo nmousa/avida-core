@@ -3061,7 +3061,7 @@ void cPopulation::ReplaceDemeFlaggedGermline(cDeme& source_deme, cDeme& target_d
     
     target_deme.AddFounder(organism->SystematicsGroup("genotype"), &organism->GetPhenotype());
     
-    track_founders.push_back(make_pair(organism->SystematicsGroup("genotype")->ID(), new_genome.AsString())); 
+//    track_founders.push_back(make_pair(organism->SystematicsGroup("genotype")->ID(), new_genome.AsString())); 
     
     DemePostInjection(target_deme, cell_array[cellid]);
   }
