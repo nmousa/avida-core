@@ -1633,7 +1633,7 @@ void cPopulationInterface::AttackFacedOrg(cAvidaContext& ctx, int loser)
   m_world->GetPopulation().AttackFacedOrg(ctx, loser);
 }
 
-void cPopulationInterface::InjectPreyClone(cAvidaContext& ctx)
+void cPopulationInterface::InjectPreyClone(cAvidaContext& ctx, int bg_id)
 {
   cOrganism* org_to_clone = NULL;
   const tSmartArray<cOrganism*>& live_org_list = GetLiveOrgList();
@@ -1644,8 +1644,8 @@ void cPopulationInterface::InjectPreyClone(cAvidaContext& ctx)
   int idx = m_world->GetRandom().GetUInt(list_size);
   while (org_to_clone == NULL) {
     cOrganism* org_at = TriedIdx[idx];
-    // exclude pred and juvs
-    if (org_at->GetForageTarget() > -1) org_to_clone = org_at;
+    // exclude pred and juvs & the genotype of the org that was being killed and triggered this cloning
+    if (org_at->GetForageTarget() > -1 && org_at->GetBioGroup("genotype")->GetID() != bg_id) org_to_clone = org_at;
     else TriedIdx.Swap(idx, --list_size);
     if (list_size == 1) break;
     idx = m_world->GetRandom().GetUInt(list_size);

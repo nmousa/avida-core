@@ -260,7 +260,7 @@ public:
   void IncNumPredOrganisms();
   void IncNumTopPredOrganisms();
   void AttackFacedOrg(cAvidaContext& ctx, int loser);
-  void InjectPreyClone(cAvidaContext& ctx);
+  void InjectPreyClone(cAvidaContext& ctx, int bg_id);
   void KillRandPred(cAvidaContext& ctx, cOrganism* org);
   void KillRandPrey(cAvidaContext& ctx, cOrganism* org);
   void TryWriteLookData(cString& string);

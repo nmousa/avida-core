@@ -207,7 +207,7 @@ public:
   virtual void IncNumPredOrganisms() = 0;
   virtual void IncNumTopPredOrganisms() = 0;
   virtual void AttackFacedOrg(cAvidaContext& ctx, int loser) = 0;
-  virtual void InjectPreyClone(cAvidaContext& ctx) = 0;
+  virtual void InjectPreyClone(cAvidaContext& ctx, int bg_id) = 0;
   virtual void KillRandPred(cAvidaContext& ctx, cOrganism* org) = 0;
   virtual void KillRandPrey(cAvidaContext& ctx, cOrganism* org) = 0;
   virtual void TryWriteLookData(cString& string) = 0;
