@@ -1646,23 +1646,11 @@ void cPopulationInterface::InjectPreyClone(cAvidaContext& ctx, int bg_id)
     cOrganism* org_at = TriedIdx[idx];
     // exclude pred and juvs & the genotype of the org that was being killed and triggered this cloning
     if (org_at->GetForageTarget() > -1 && org_at->GetBioGroup("genotype")->GetID() != bg_id) {
-      cCPUTestInfo test_info;
-      cTestCPU* testcpu = m_world->GetHardwareManager().CreateTestCPU(ctx);
-      
-      int cell_id = org_at->GetCellID();
-      if (m_world->GetConfig().USE_AVATARS.Get()) cell_id = org_at->GetAVCellID();
-//      test_info.UseManualInputs(m_world->GetPopulation().GetCell(cell_id).GetInputs()); // Test using what the environment would be
-      
-      testcpu->TestGenome(ctx, test_info, Genome(org_at->GetGenome()));
-      if (test_info.GetTestPhenotype().GetGestationTime()) {
-        delete testcpu;
-        org_to_clone = org_at;   // only clone orgs that can reproduce on their own
+      if (org_at->GetPhenotype().IsClone()) {
+        bool rubbish;
+        rubbish = false;
       }
-      else {
-        TriedIdx.Swap(idx, --list_size);
-        delete testcpu;
-        if (list_size == 1) break;
-      }
+      if (!org_at->GetPhenotype().IsClone()) org_to_clone = org_at;   // only clone orgs that can reproduce on their own
     }
     else TriedIdx.Swap(idx, --list_size);
     if (list_size == 1) break;

@@ -233,6 +233,7 @@ private:
   bool to_die;		 // Has organism has triggered something fatal?
   bool to_delete;        // Should this organism be deleted when finished?
   bool is_injected;      // Was this organism injected into the population?
+  bool is_clone;      // Was this organism created as a clone in the population?
   bool is_donor_cur;     // Has this organism attempted to donate merit?  
   bool is_donor_last;    // Did this organism's parent attempt to donate merit? 
   bool is_donor_rand;    // Has this organism attempted a random donation?
@@ -509,6 +510,7 @@ public:
   int GetNumDonationsLocusLast() const { assert(initialized == true); return num_donations_locus_last; }
 
   bool IsInjected() const { assert(initialized == true); return is_injected; }
+  bool IsClone() const { assert(initialized == true); return is_clone; }
   bool IsDonorCur() const { assert(initialized == true); return is_donor_cur; }
   bool IsDonorLast() const { assert(initialized == true); return is_donor_last; }
   bool IsDonorRand() const { assert(initialized == true); return is_donor_rand; }
@@ -681,6 +683,7 @@ public:
   void SetLastMatingDisplayB(int _last_mating_display_b) { last_mating_display_b = _last_mating_display_b; } //@CHC
   
   bool& IsInjected() { assert(initialized == true); return is_injected; }
+  bool& IsClone() { assert(initialized == true); return is_clone; }
   bool& IsModifier() { assert(initialized == true); return is_modifier; }
   bool& IsModified() { assert(initialized == true); return is_modified; }
   bool& IsFertile()  { assert(initialized == true); return is_fertile; }

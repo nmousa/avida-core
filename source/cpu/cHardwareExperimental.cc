@@ -5139,7 +5139,7 @@ bool cHardwareExperimental::Inst_AttackPrey(cAvidaContext& ctx)
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
-      for (int i = 0; i < num_clones; i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
+      for (int i = 0; i < min(2, num_clones); i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
     }
     
     cString inst = "attack-prey";
@@ -5249,7 +5249,7 @@ bool cHardwareExperimental::Inst_AttackPreyArea(cAvidaContext& ctx)
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
-      for (int i = 0; i < num_clones; i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
+      for (int i = 0; i < min(2, num_clones); i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
     }
       
       setInternalValue(success_reg, 1, true);
@@ -5368,7 +5368,7 @@ bool cHardwareExperimental::Inst_AttackPreyGroup(cAvidaContext& ctx)
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
-      for (int i = 0; i < num_clones; i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
+      for (int i = 0; i < min(2, num_clones); i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
     }
     
     cString inst = "attack-prey-group";
@@ -5491,7 +5491,7 @@ bool cHardwareExperimental::Inst_AttackPreyShare(cAvidaContext& ctx)
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
-      for (int i = 0; i < num_clones; i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
+      for (int i = 0; i < min(2, num_clones); i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
     }
 
     cString inst = "attack-prey-share";
@@ -5614,7 +5614,7 @@ bool cHardwareExperimental::Inst_AttackPreyGroupShare(cAvidaContext& ctx)
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
-      for (int i = 0; i < num_clones; i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
+      for (int i = 0; i < min(2, num_clones); i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
     }
     
     cString inst = "attack-prey-group-share";
@@ -5706,7 +5706,7 @@ bool cHardwareExperimental::Inst_AttackSpecPrey(cAvidaContext& ctx)
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
-      for (int i = 0; i < num_clones; i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
+      for (int i = 0; i < min(2, num_clones); i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
     }
     
     setInternalValue(success_reg, 1, true);
@@ -5808,7 +5808,7 @@ bool cHardwareExperimental::Inst_AttackFTPrey(cAvidaContext& ctx)
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
-      for (int i = 0; i < num_clones; i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
+      for (int i = 0; i < min(2, num_clones); i++) m_organism->GetOrgInterface().InjectPreyClone(ctx, m_organism->GetBioGroup("genotype")->GetID());
     }
     
     cString inst = "attack-ft-prey";

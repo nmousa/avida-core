@@ -250,6 +250,7 @@ cPhenotype& cPhenotype::operator=(const cPhenotype& in_phen)
   to_die                  = in_phen.to_die;		 
   to_delete               = in_phen.to_delete;        
   is_injected             = in_phen.is_injected;      
+  is_clone                = in_phen.is_clone;
   is_donor_cur            = in_phen.is_donor_cur;     
   is_donor_last           = in_phen.is_donor_last;     
   is_donor_rand           = in_phen.is_donor_rand;    
@@ -491,6 +492,7 @@ void cPhenotype::SetupOffspring(const cPhenotype& parent_phenotype, const Sequen
 	
   // Setup flags...
   is_injected   = false;
+  is_clone = false;
   is_donor_cur  = false;
   is_donor_last = parent_phenotype.is_donor_last;
   is_donor_rand = false;
@@ -701,6 +703,7 @@ void cPhenotype::SetupInject(const Sequence& _genome)
 	
   // Setup flags...
   is_injected   = true;
+  is_clone = false;
   is_donor_last = false;
   is_donor_cur  = false;
   is_donor_rand = false;
@@ -933,6 +936,7 @@ void cPhenotype::DivideReset(const Sequence& _genome)
 	
   // Leave flags alone...
   (void) is_injected;
+  is_clone = false; // has legitimately reproduced
   is_donor_last = is_donor_cur;
   is_donor_cur = false;
   is_donor_rand_last = is_donor_rand;
@@ -1155,6 +1159,7 @@ void cPhenotype::TestDivideReset(const Sequence& _genome)
 	
   // Leave flags alone...
   (void) is_injected;
+  is_clone = false; // has legitimately reproduced
   is_donor_last = is_donor_cur;
   is_donor_cur = false;
   is_donor_rand_last = is_donor_rand;
@@ -1352,6 +1357,7 @@ void cPhenotype::SetupClone(const cPhenotype& clone_phenotype)
 	
   // Setup flags...
   is_injected   = false;
+  is_clone = true;  
   is_donor_last = clone_phenotype.is_donor_last;
   is_donor_cur  = clone_phenotype.is_donor_cur;
   is_receiver = false;
@@ -2135,6 +2141,7 @@ void cPhenotype::NewTrial()
 	
   // Leave flags alone...
   (void) is_injected;
+  (void) is_clone;
   is_donor_last = is_donor_cur;
   is_donor_cur = false;
   is_donor_rand_last = is_donor_rand;
