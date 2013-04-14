@@ -1646,10 +1646,6 @@ void cPopulationInterface::InjectPreyClone(cAvidaContext& ctx, int bg_id)
     cOrganism* org_at = TriedIdx[idx];
     // exclude pred and juvs & the genotype of the org that was being killed and triggered this cloning
     if (org_at->GetForageTarget() > -1 && org_at->GetBioGroup("genotype")->GetID() != bg_id) {
-      if (org_at->GetPhenotype().IsClone()) {
-        bool rubbish;
-        rubbish = false;
-      }
       if (!org_at->GetPhenotype().IsClone()) org_to_clone = org_at;   // only clone orgs that can reproduce on their own
     }
     else TriedIdx.Swap(idx, --list_size);
