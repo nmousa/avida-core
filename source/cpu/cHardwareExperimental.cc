@@ -2052,7 +2052,7 @@ bool cHardwareExperimental::Inst_TaskIO(cAvidaContext& ctx)
 {
   const int reg_used = FindModifiedRegister(rBX);
   sInternalValue& reg = m_threads[m_cur_thread].reg[reg_used];
-  
+
   // Do the "put" component
   m_organism->DoOutput(ctx, reg.value);  // Check for tasks completed.
   m_last_output = m_cycle_count;
@@ -5134,8 +5134,8 @@ bool cHardwareExperimental::Inst_AttackPrey(cAvidaContext& ctx)
     }
     
     // if you weren't a predator before, you are now!
+    target->Die(ctx); // kill first -- could end up being killed by inject clone or by MAX_PRED if parent was pred ft
     MakePred(ctx);
-    target->Die(ctx); // kill first -- could end up being killed by inject clone
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
@@ -5244,8 +5244,8 @@ bool cHardwareExperimental::Inst_AttackPreyArea(cAvidaContext& ctx)
       }
       
       // if you weren't a predator before, you are now!
+    target->Die(ctx); // kill first -- could end up being killed by inject clone or by MAX_PRED if parent was pred ft
     MakePred(ctx);
-    target->Die(ctx); // kill first -- could end up being killed by inject clone
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
@@ -5363,8 +5363,8 @@ bool cHardwareExperimental::Inst_AttackPreyGroup(cAvidaContext& ctx)
     }
     
     // if you weren't a predator before, you are now!
+    target->Die(ctx); // kill first -- could end up being killed by inject clone or by MAX_PRED if parent was pred ft
     MakePred(ctx);
-    target->Die(ctx); // kill first -- could end up being killed by inject clone
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
@@ -5486,8 +5486,8 @@ bool cHardwareExperimental::Inst_AttackPreyShare(cAvidaContext& ctx)
     }
 
     // if you weren't a predator before, you are now (all of your pack mates already are)!
+    target->Die(ctx); // kill first -- could end up being killed by inject clone or by MAX_PRED if parent was pred ft
     MakePred(ctx);
-    target->Die(ctx); // kill first -- could end up being killed by inject clone
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
@@ -5609,8 +5609,8 @@ bool cHardwareExperimental::Inst_AttackPreyGroupShare(cAvidaContext& ctx)
     }
     
     // if you weren't a predator before, you are now!
+    target->Die(ctx); // kill first -- could end up being killed by inject clone or by MAX_PRED if parent was pred ft
     MakePred(ctx);
-    target->Die(ctx); // kill first -- could end up being killed by inject clone
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
@@ -5701,8 +5701,8 @@ bool cHardwareExperimental::Inst_AttackSpecPrey(cAvidaContext& ctx)
     }
     
     // if you weren't a predator before, you are now!
+    target->Die(ctx); // kill first -- could end up being killed by inject clone or by MAX_PRED if parent was pred ft
     MakePred(ctx);
-    target->Die(ctx); // kill first -- could end up being killed by inject clone
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
@@ -5803,8 +5803,8 @@ bool cHardwareExperimental::Inst_AttackFTPrey(cAvidaContext& ctx)
     }
     
     // if you weren't a predator before, you are now!
+    target->Die(ctx); // kill first -- could end up being killed by inject clone or by MAX_PRED if parent was pred ft
     MakePred(ctx);
-    target->Die(ctx); // kill first -- could end up being killed by inject clone
     if (m_world->GetConfig().MIN_PREY.Get() < 0 && m_world->GetStats().GetNumPreyCreatures() <= abs(m_world->GetConfig().MIN_PREY.Get())) {
       // prey numbers can be crashing for other reasons and we wouldn't be using this switch if we didn't want an absolute min num prey
       int num_clones = abs(m_world->GetConfig().MIN_PREY.Get()) - m_world->GetStats().GetNumPreyCreatures();
@@ -6074,7 +6074,7 @@ bool cHardwareExperimental::Inst_AttackPred(cAvidaContext& ctx)
       setInternalValue(bin_reg, spec_bin, true);
     }
     
-    target->Die(ctx);
+    target->Die(ctx); // kill first -- could end up being killed by MAX_PRED if parent was pred ft
     MakeTopPred(ctx);
     
     setInternalValue(success_reg, 1, true);   
