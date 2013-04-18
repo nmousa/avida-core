@@ -2949,7 +2949,7 @@ bool cHardwareExperimental::Inst_Repro(cAvidaContext& ctx)
   child_genome = m_organism->GetGenome().GetSequence();
 
   // Perform Copy Mutations...
-  if (m_organism->GetCopyMutProb() > 0) { // Skip this if no mutations....
+  if (m_organism->GetCopyMutProb() > 0 && (m_organism->GetForageTarget() < -1 || !m_world->GetConfig().PREY_MUT_OFF.Get())) { // Skip this if no mutations....
     for (int i = 0; i < child_genome.GetSize(); i++) {    
 //    for (int i = 0; i < m_memory.GetSize(); i++) {
       if (m_organism->TestCopyMut(ctx)) m_organism->OffspringGenome().GetSequence()[i] = m_inst_set->GetRandomInst(ctx);
@@ -2957,7 +2957,7 @@ bool cHardwareExperimental::Inst_Repro(cAvidaContext& ctx)
   }
   
   // Handle Divide Mutations...
-  Divide_DoMutations(ctx);
+  if (m_organism->GetForageTarget() < -1 || !m_world->GetConfig().PREY_MUT_OFF.Get()) Divide_DoMutations(ctx);
   
   const bool viable = Divide_CheckViable(ctx, m_organism->GetGenome().GetSize(), m_organism->OffspringGenome().GetSize(), 1);
   if (viable == false) return false;
