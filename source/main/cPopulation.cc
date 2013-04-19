@@ -6321,14 +6321,14 @@ bool cPopulation::LoadPopulation(const cString& filename, cAvidaContext& ctx, in
         
         new_organism->GetPhenotype().SetBirthCellID(cell_id);
         org_survived = ActivateOrganism(ctx, new_organism, cell_array[cell_id], false, true);
-      }
-      
-      if (org_survived && m_world->GetConfig().USE_AVATARS.Get() && !m_world->GetConfig().NEURAL_NETWORKING.Get()) { //**
-        int avatar_cell = -1;
-        if (tmp.avatar_cells.GetSize() != 0) avatar_cell = tmp.avatar_cells[cell_i];
-        if (avatar_cell != -1) {
-          new_organism->GetOrgInterface().AddPredPreyAV(avatar_cell);
-          new_organism->GetPhenotype().SetAVBirthCellID(tmp.avatar_cells[cell_i]);
+        
+        if (org_survived && m_world->GetConfig().USE_AVATARS.Get() && !m_world->GetConfig().NEURAL_NETWORKING.Get()) { //**
+          int avatar_cell = -1;
+          if (tmp.avatar_cells.GetSize() != 0) avatar_cell = tmp.avatar_cells[cell_i];
+          if (avatar_cell != -1) {
+            new_organism->GetOrgInterface().AddPredPreyAV(avatar_cell);
+            new_organism->GetPhenotype().SetAVBirthCellID(tmp.avatar_cells[cell_i]);
+          }
         }
       }
     }
