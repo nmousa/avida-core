@@ -6304,15 +6304,6 @@ bool cPopulation::LoadPopulation(const cString& filename, cAvidaContext& ctx, in
           org_survived = ActivateOrganism(ctx, new_organism, cell_array[cell_id], false, true);
         }
         else org_survived = ActivateOrganism(ctx, new_organism, cell_array[cell_id], true, true);
-        
-        if ((load_avatars || load_birth_cells) && org_survived && m_world->GetConfig().USE_AVATARS.Get() && !m_world->GetConfig().NEURAL_NETWORKING.Get()) { //**
-          int avatar_cell = -1;
-          if (tmp.avatar_cells.GetSize() != 0) avatar_cell = tmp.avatar_cells[cell_i];
-          if (avatar_cell != -1) {
-            new_organism->GetOrgInterface().AddPredPreyAV(avatar_cell);
-            new_organism->GetPhenotype().SetAVBirthCellID(tmp.avatar_cells[cell_i]);
-          }
-        }
       }
       else if (load_rebirth) {
         new_organism->SetParentFT(tmp.parent_ft[cell_i]);
@@ -6321,14 +6312,14 @@ bool cPopulation::LoadPopulation(const cString& filename, cAvidaContext& ctx, in
         
         new_organism->GetPhenotype().SetBirthCellID(cell_id);
         org_survived = ActivateOrganism(ctx, new_organism, cell_array[cell_id], false, true);
-        
-        if (org_survived && m_world->GetConfig().USE_AVATARS.Get() && !m_world->GetConfig().NEURAL_NETWORKING.Get()) { //**
-          int avatar_cell = -1;
-          if (tmp.avatar_cells.GetSize() != 0) avatar_cell = tmp.avatar_cells[cell_i];
-          if (avatar_cell != -1) {
-            new_organism->GetOrgInterface().AddPredPreyAV(avatar_cell);
-            new_organism->GetPhenotype().SetAVBirthCellID(tmp.avatar_cells[cell_i]);
-          }
+      }
+      
+      if (org_survived && m_world->GetConfig().USE_AVATARS.Get() && !m_world->GetConfig().NEURAL_NETWORKING.Get()) { //**
+        int avatar_cell = -1;
+        if (tmp.avatar_cells.GetSize() != 0) avatar_cell = tmp.avatar_cells[cell_i];
+        if (avatar_cell != -1) {
+          new_organism->GetOrgInterface().AddPredPreyAV(avatar_cell);
+          new_organism->GetPhenotype().SetAVBirthCellID(tmp.avatar_cells[cell_i]);
         }
       }
     }
