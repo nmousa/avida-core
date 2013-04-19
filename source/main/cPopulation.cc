@@ -6173,6 +6173,11 @@ bool cPopulation::LoadPopulation(const cString& filename, cAvidaContext& ctx, in
         assert(tmp.avatar_cells.GetSize() == 0 || tmp.avatar_cells.GetSize() == tmp.num_cpus);
       }
     }
+    if (m_world->GetConfig().USE_AVATARS.Get() && !tmp.avatar_cells.GetSize()) {
+      cString avatarstr(tmp.props->Get("avatar_cell"));
+      while (avatarstr.GetSize()) tmp.avatar_cells.Push(avatarstr.Pop(',').AsInt());
+      assert(tmp.avatar_cells.GetSize() == 0 || tmp.avatar_cells.GetSize() == tmp.num_cpus);
+    }
   }
   
   // Sort genotypes in ascending order according to their id_num
@@ -6294,14 +6299,14 @@ bool cPopulation::LoadPopulation(const cString& filename, cAvidaContext& ctx, in
           if (tmp.forager_types.GetSize() != 0) forager_type = tmp.forager_types[cell_i]; 
           new_organism->SetOpinion(group_id);
           JoinGroup(new_organism, group_id);
-          new_organism->SetForageTarget(ctx, forager_type);
           new_organism->GetPhenotype().SetBirthCellID(cell_id);
           new_organism->GetPhenotype().SetBirthGroupID(group_id);
           new_organism->GetPhenotype().SetBirthForagerType(forager_type);
           new_organism->SetParentGroup(group_id);
           new_organism->SetParentFT(forager_type);
-          if (tmp.props->HasEntry("parent_merit")) new_organism->SetParentMerit(tmp.parent_merit[cell_i]);
+          if (tmp.parent_merit.GetSize()) new_organism->SetParentMerit(tmp.parent_merit[cell_i]);
           org_survived = ActivateOrganism(ctx, new_organism, cell_array[cell_id], false, true);
+          if (org_survived) new_organism->SetForageTarget(ctx, forager_type, true);
         }
         else org_survived = ActivateOrganism(ctx, new_organism, cell_array[cell_id], true, true);
       }
