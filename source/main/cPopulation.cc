@@ -1053,6 +1053,7 @@ bool cPopulation::ActivateOrganism(cAvidaContext& ctx, cOrganism* in_organism, c
           }
         }
       }
+      else op = in_organism->GetOpinion().first;
     }
     
     in_organism->GetPhenotype().SetBirthCellID(target_cell.GetID());
