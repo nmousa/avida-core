@@ -1172,44 +1172,39 @@ public:
     }
     
     tSmartArray<int> birth_groups_checked;
-    cBioGroup* bg = it->Next();
     
     for (int i = 0; i < num_groups; i++) {
       bool already_used = false;
+      cBioGroup* bg = it->Next();
+      
+      if (!bg) break;
+
       if (bg && (bg->GetProperty("threshold").AsBool() || i == 0)) {
-        int last_birth_group_id = bg->GetProperty("last_group_id").AsInt(); 
+        int last_birth_group_id = bg->GetProperty("last_group_id").AsInt();
         int last_birth_cell = bg->GetProperty("last_birth_cell").AsInt();
-        int last_birth_forager_type = bg->GetProperty("last_forager_type").AsInt(); 
+        int last_birth_forager_type = bg->GetProperty("last_forager_type").AsInt();
         if (i != 0) {
           for (int j = 0; j < birth_groups_checked.GetSize(); j++) {
-            if (last_birth_group_id == birth_groups_checked[j]) { 
-              already_used = true; 
+            if (last_birth_group_id == birth_groups_checked[j]) {
+              already_used = true;
               i--;
-              break; 
+              break;
             }
           }
         }
         if (!already_used) birth_groups_checked.Push(last_birth_group_id);
-        if (already_used) {
-          if (bg == it->Next()) break; // no more to check
-          else {
-            bg = it->Next();
-            continue;
-          }
-        }
+        if (already_used) continue;
+        
         cString filename(m_filename);
         if (filename == "") filename.Set("archive/grp%d_ft%d_%s.org", last_birth_group_id, last_birth_forager_type, (const char*)bg->GetProperty("name").AsString());
-        else filename = filename.Set(filename + "grp%d_ft%d", last_birth_group_id, last_birth_forager_type); 
-
+        else filename = filename.Set(filename + "grp%d_ft%d", last_birth_group_id, last_birth_forager_type);
+        
         // need a random number generator to pass to testcpu that does not affect any other random number pulls (since this is just for printing the genome)
         cRandom rng(0);
         cAvidaContext ctx2(m_world, rng);
         cTestCPU* testcpu = m_world->GetHardwareManager().CreateTestCPU(ctx2);
         testcpu->PrintGenome(ctx2, Genome(bg->GetProperty("genome").AsString()), filename, m_world->GetStats().GetUpdate(), true, last_birth_cell, last_birth_group_id, last_birth_forager_type);
         delete testcpu;
-        
-        if (bg == it->Next()) break; // no more to check
-        else bg = it->Next();
       }
     }
   }
@@ -1240,11 +1235,14 @@ public:
     for(itr = fts_avail.begin();itr!=fts_avail.end();itr++) if (*itr != -1 && *itr != -2 && *itr != -3) num_fts++;
     
     tSmartArray<int> birth_forage_types_checked;
-    cBioGroup* bg = it->Next();
     
     for (int i = 0; i < num_fts; i++) {
       bool already_used = false;
-      if (bg && (bg->GetProperty("threshold").AsBool() || i == 0)) {
+      cBioGroup* bg = it->Next();
+      
+      if (!bg) break;
+
+      if (bg->GetProperty("threshold").AsBool() || i == 0) {
         int last_birth_group_id = bg->GetProperty("last_group_id").AsInt(); 
         int last_birth_cell = bg->GetProperty("last_birth_cell").AsInt();
         int last_birth_forager_type = bg->GetProperty("last_forager_type").AsInt(); 
@@ -1258,13 +1256,9 @@ public:
           }
         }
         if (!already_used) birth_forage_types_checked.Push(last_birth_forager_type);
-        if (already_used) {
-          if (bg == it->Next()) break; // no more to check
-          else {
-            bg = it->Next();
-            continue;
-          }
-        }
+        if (already_used) continue;
+        
+        
         cString filename(m_filename);
         if (filename == "") filename.Set("archive/ft%d_grp%d_%s.org", last_birth_forager_type, last_birth_group_id, (const char*)bg->GetProperty("name").AsString());
         else filename = filename.Set(filename + ".ft%d_grp%d", last_birth_forager_type, last_birth_group_id); 
@@ -1275,9 +1269,6 @@ public:
         cTestCPU* testcpu = m_world->GetHardwareManager().CreateTestCPU(ctx2);
         testcpu->PrintGenome(ctx2, Genome(bg->GetProperty("genome").AsString()), filename, m_world->GetStats().GetUpdate(), true, last_birth_cell, last_birth_group_id, last_birth_forager_type);
         delete testcpu;
-
-        if (bg == it->Next()) break; // no more to check
-        else bg = it->Next();
       }
     }
   }

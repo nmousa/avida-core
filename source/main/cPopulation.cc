@@ -1069,7 +1069,7 @@ bool cPopulation::ActivateOrganism(cAvidaContext& ctx, cOrganism* in_organism, c
     else genotype->SetLastGroupID(in_organism->GetParentGroup());
     genotype->SetLastForagerType(in_organism->GetParentFT());      
   }
-  
+
   bool org_survived = true;
   // For tolerance_window, we cheated by dumping doomed offspring into cell (X * Y) - 1 ...now that we updated the stats, we need to 
   // kill that org. 
